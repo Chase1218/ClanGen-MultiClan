@@ -1,0 +1,310 @@
+"""
+Stores the DebugMenu class and the DebugMode class
+"""
+
+import pygame
+import pygame_gui
+import html
+import shlex
+
+from pygame_gui.elements import UIWindow, UITextBox, UITextEntryLine, UIButton
+from scripts.ui.scale import ui_scale
+from scripts.debug_commands import command_list
+from scripts.debug_commands.utils import set_debug_class, add_output_line_to_log
+from scripts.game_structure import game
+from scripts.game_structure.screen_settings import MANAGER, offset, screen_scale
+from scripts.ui.theme import get_text_box_theme
+
+
+class DebugMenu(UIWindow):
+    """
+    The ClanGen debug menu, useful for debugging.
+    """
+
+    def __init__(self, rect, manager):
+        super().__init__(
+            rect=rect,
+            manager=manager,
+            window_display_title="Debug Console",
+            object_id="#debug_console",
+            resizable=False,
+            always_on_top=True,
+            visible=0,
+        )
+        self.set_blocking(False)
+        set_debug_class(self)
+
+        self.log = UITextBox(
+            "",
+            relative_rect=ui_scale(
+                pygame.Rect(
+                    (2, 2),
+                    (
+                        self.get_container().get_size()[0] - 4,
+                        self.get_container().get_size()[1] - 36,
+                    ),
+                )
+            ),
+            container=self,
+            object_id="#log",
+            manager=MANAGER,
+        )
+
+        self.command_line = UITextEntryLine(
+            relative_rect=ui_scale(
+                pygame.Rect((2, -32), (self.get_container().get_size()[0] - 32, 30))
+            ),
+            container=self,
+            object_id="#command_line",
+            anchors={"top": "bottom"},
+        )
+
+        self.submit_command = UIButton(
+            ui_scale(pygame.Rect((-32, -32), (30, 30))),
+            ">>",
+            manager=MANAGER,
+            container=self,
+            object_id="#submit_command",
+            anchors={"top": "bottom", "left": "right"},
+        )
+
+        self.prev_command_index = -1
+        self.previous_commands = []
+
+        self.change_layer(1000)
+
+        self.push_line('Enter "help" for a list of commands')
+
+    def _parse_command_string(self, raw_command: str) -> tuple[str, list[str]]:
+        """
+        Parses a command string and returns a tuple with the command name and
+        a list of parsed arguments.
+        """
+        args: list[str] = shlex.split(raw_command)
+
+        # command name, arguments
+        return args[0], args[1:]
+
+    def process_command(self, raw_command: str):
+        """
+        Processes a string containing the command and it's arguments and calls
+        the appropriate command's callback.
+        """
+        commands = raw_command.split("&", 1)
+        command, args = self._parse_command_string(commands[0])
+
+        for cmd in command_list:
+            if not command in cmd.valid_names:
+                continue
+
+            if cmd.bypass_conjoined_strings:
+                args = raw_command.strip().split(" ")[1:]
+
+            index = 0
+            for possible_cmd in args:
+                for sub_command in cmd.sub_commands:
+                    if possible_cmd not in sub_command.valid_names:
+                        continue
+
+                    index += 1
+                    cmd = sub_command
+            args = args[index:]
+
+            try:
+                cmd.callback(args)
+                if len(commands) > 1:
+                    self.process_command(commands[1])
+                return
+            except Exception as e:
+                self.push_line(f"Error while executing command '{command}': {e}")
+                raise e
+
+        self.push_line(f"Command '{command}' not found")
+
+    def process_event(self, event: pygame.Event):
+        if (
+            event.type == pygame_gui.UI_TEXT_ENTRY_FINISHED
+            and event.ui_element == self.command_line
+        ) or (
+            event.type == pygame_gui.UI_BUTTON_PRESSED
+            and event.ui_element == self.submit_command
+        ):
+            command_text = self.command_line.get_text()
+            add_output_line_to_log(f"> {command_text}")
+            pygame.event.post(
+                pygame.Event(
+                    pygame_gui.UI_CONSOLE_COMMAND_ENTERED,
+                    {"command": command_text},
+                )
+            )
+            self.prev_command_index = -1
+            if command_text in self.previous_commands:
+                self.previous_commands.remove(command_text)
+            self.previous_commands.insert(0, command_text)
+            self.command_line.clear()
+
+        consume_event = False
+        if event.type == pygame.KEYDOWN and len(self.previous_commands) > 0:
+            if event.key == pygame.K_UP:
+                self.prev_command_index = min(
+                    len(self.previous_commands) - 1, self.prev_command_index + 1
+                )
+                self.command_line.set_text(
+                    self.previous_commands[self.prev_command_index]
+                )
+            elif event.key == pygame.K_DOWN:
+                self.prev_command_index = max(-1, self.prev_command_index - 1)
+                if self.prev_command_index < 0:
+                    self.command_line.set_text("")
+                else:
+                    self.command_line.set_text(
+                        self.previous_commands[self.prev_command_index]
+                    )
+
+            # Prevent keybinds from being processed if the command line is currently accepting input
+            consume_event = self.command_line.is_focused
+
+        if event.type == pygame_gui.UI_CONSOLE_COMMAND_ENTERED:
+            self.process_command(event.command)
+        return super().process_event(event) or consume_event
+
+    def push_line(self, line: str):
+        """
+        Appends a string and a newline to the command log.
+        """
+        self.log.append_html_text(html.escape(line + "\n"))
+
+    def push_multiline(self, lines: str):
+        """
+        Appends multiple lines to the command log.
+        """
+        for line in lines.split("\n"):
+            self.push_line(line)
+
+    def clear(self):
+        """
+        Clears the output log
+        """
+        self.log.clear()
+
+    def on_close_window_button_pressed(self):
+        self.hide()
+
+
+class DebugMode:
+    """
+    A utility class that stores the debug menu and other debugging related
+    UI elements.
+    """
+
+    debug_menu: DebugMenu = None
+    coords_display = None
+    fps_display = None
+
+    def __init__(self):
+        self.rebuild_console()
+
+    def toggle_debug_mode(self):
+        """
+        Toggles the debug menu.
+        """
+        if not self.debug_menu.visible:
+            self.debug_menu.show()
+            self.debug_menu.command_line.focus()
+        else:
+            self.debug_menu.hide()
+
+    def rebuild_console(self):
+        """
+        Rebuilds the debug menu and other debugging related UI elements.
+        """
+        self.coords_display = pygame_gui.elements.UILabel(
+            pygame.Rect((0, 0), (-1, -1)),
+            "(0, 0)",
+            object_id=get_text_box_theme(),
+        )
+
+        self.coords_display.change_layer(9000)
+        self.coords_display.text_colour = (255, 0, 0)
+        self.coords_display.disable()
+        self.coords_display.rebuild()
+        self.coords_display.hide()
+
+        self.fps_display = pygame_gui.elements.UILabel(
+            pygame.Rect((0, 0), (-1, -1)), "0 fps", object_id=get_text_box_theme()
+        )
+
+        if self.debug_menu:
+            self.debug_menu.kill()
+        self.debug_menu = DebugMenu(
+            pygame.Rect(
+                (0, 0),
+                (
+                    pygame.display.get_surface().get_width() / 1.35,
+                    pygame.display.get_surface().get_height() / 1.35,
+                ),
+            ),
+            MANAGER,
+        )
+
+    def pre_update(self, clock):
+        """
+        Updates *before* the UI has been drawn.
+        """
+
+        # Showcoords
+        if game.debug_settings["showcoords"]:
+            if self.coords_display.visible == 0:
+                self.coords_display.show()
+
+            _ = pygame.mouse.get_pos()
+            self.coords_display.set_text(
+                f"({round(_[0] - offset[0] // screen_scale)}, "
+                f"{round(_[1] - offset[1] // screen_scale)})"
+            )
+            self.coords_display.set_position((_[0] + 10, _[1] + 10))
+            del _
+        else:
+            if self.coords_display.visible == 1:
+                self.coords_display.hide()
+                self.coords_display.set_text("(0, 0)")
+                self.coords_display.set_position((0, 0))
+
+        if game.debug_settings["showfps"]:
+            if self.fps_display.visible == 0:
+                self.fps_display.show()
+
+            self.fps_display.set_text(f"{round(clock.get_fps(), 2)} fps")
+        else:
+            if self.fps_display.visible == 1:
+                self.fps_display.hide()
+                self.fps_display.set_text("(0, 0)")
+
+        # Showbounds
+
+        # visual_debug_mode
+        if game.debug_settings["visualdebugmode"]:
+            if not MANAGER.visual_debug_active:
+                MANAGER.set_visual_debug_mode(True)
+        else:
+            if MANAGER.visual_debug_active:
+                MANAGER.set_visual_debug_mode(False)
+
+    def post_update(self, screen):
+        """
+        Updates *after* the UI has been drawn.
+        """
+        self.debug_menu.window_stack.move_window_to_front(self.debug_menu)
+        if game.debug_settings["showbounds"]:
+            elements = MANAGER.ui_group.visible
+            for surface in elements:
+                rect = surface[1]
+                if rect in [self.coords_display.rect, self.debug_menu.rect]:
+                    continue
+                if rect.collidepoint(pygame.mouse.get_pos()):
+                    pygame.draw.rect(screen, (0, 255, 0), rect, 1)
+                else:
+                    pygame.draw.rect(screen, (255, 0, 0), rect, 1)
+
+
+debug_mode = DebugMode()

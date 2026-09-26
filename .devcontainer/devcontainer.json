@@ -1,0 +1,39 @@
+{
+  "name": "Clangen Development",
+  "forwardPorts": [6080, 5901],
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/desktop-lite:1": {
+      "password": "clangen"
+    },
+    "ghcr.io/devcontainers/features/python:1": {},
+    "ghcr.io/devcontainers-extra/features/pylint:2": {},
+    "ghcr.io/va-h/devcontainers-features/uv:1": {}
+  },
+  "capAdd": ["SYS_PTRACE"],
+  "postCreateCommand": "uv sync",
+  "remoteEnv": {
+    "SDL_AUDIODRIVER": "dsp"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "benjaminbenais.copilot-theme",
+        "GitHub.copilot",
+        "GitHub.copilot-labs",
+        "Tyriar.luna-paint",
+        "aaron-bond.better-comments",
+        "ms-python.pylint",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "workbench.colorTheme": "Copilot Theme"
+      }
+    },
+    "codespaces": {
+      "openFiles": [
+        "main.py"
+      ]
+    }
+  }
+}
