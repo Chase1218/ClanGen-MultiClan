@@ -50,6 +50,13 @@
         "SWIMMER,2": "talented swimmer",
         "SWIMMER,3": "fish-like swimmer",
 
+        "digging": "digging",
+        "DIGGER,0": "likes to dig",
+        "DIGGER,0.5": "good at digging",
+        "DIGGER,1": "good digger",
+        "DIGGER,2": "great digger",
+        "DIGGER,3": "masterful digger",
+
         "stealth": "stealth",
         "STEALTH,0": "hide and seek champ",
         "STEALTH,0.5": "light-pawed",

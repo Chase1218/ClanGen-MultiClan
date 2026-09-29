@@ -16,6 +16,7 @@ class EventInformation:
             ]
         ] = None,
         cats_involved: list | tuple = None,
+        clan=None,
         cat_dict: dict = None,
         clans_involved: list | tuple = None,
     ):
@@ -29,6 +30,7 @@ class EventInformation:
         """
 
         self.text = text
+        self.clan = clan
 
         if types:
             self.types = list(types)
@@ -64,6 +66,7 @@ class EventInformation:
             "types": self.types,
             "cats_involved": self.cats_involved,
             "cat_dict": cat_dict,
+            "clan": self.clan,
             "clans_involved": self.clans_involved,
         }
 
@@ -86,5 +89,6 @@ class EventInformation:
             types=info_dict.get("types", None),
             cats_involved=info_dict.get("cats_involved", None),
             cat_dict=cat_dict,
+            clan=info_dict.get("clan", None),
             clans_involved=info_dict.get("clans_involved", None),
         )

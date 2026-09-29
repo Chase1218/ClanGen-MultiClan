@@ -49,11 +49,14 @@ def trigger_ceremony(
     create_ceremony(main_cat=main_cat, old_name=old_name, involved_cats=involved_cats)
 
 
-def check_for_ceremony(main_cat: Cat):
+def check_for_ceremony(main_cat: Cat, clan=None):
     """
     Checks if a cat needs to undergo a ceremony, then handles everything pertaining to that ceremony.
     :param main_cat: The cat object that must be checked for a potential ceremony
+    :param clan: The clan to check for ceremony eligibility
     """
+    if clan is None:
+        clan = game.clan
 
     # Protection check, to ensure "None" cats won't cause a crash.
     if not main_cat or main_cat.dead:
@@ -62,17 +65,17 @@ def check_for_ceremony(main_cat: Cat):
     # reset this value so that a cat doesn't get a congratulatory acc event if they don't receive a ceremony
     switch_set_value(Switch.ceremony_accessory, False)
 
-    # game.clan.rank check
-    if main_cat.status.rank == CatRank.DEPUTY and game.clan.deputy is None:
-        game.clan.deputy = main_cat
-    if main_cat.status.rank == CatRank.MEDICINE_CAT and game.clan.medicine_cat is None:
-        game.clan.medicine_cat = main_cat
+    # clan.rank check
+    if main_cat.status.rank == CatRank.DEPUTY and clan.deputy is None:
+        clan.deputy = main_cat
+    if main_cat.status.rank == CatRank.MEDICINE_CAT and clan.medicine_cat is None:
+        clan.medicine_cat = main_cat
 
     # PROMOTE DEPUTY TO LEADER
     if main_cat.status.rank == CatRank.DEPUTY:
         # If a Clan deputy exists, and the leader is dead, outside, or doesn't exist, make the deputy leader.
-        if not game.clan.leader or not game.clan.leader.status.alive_in_player_clan:
-            _handle_leader_ceremony(main_cat)
+        if not clan.leader or not clan.leader.status.alive_in_player_clan != clan.group_ID:
+            _handle_leader_ceremony(main_cat, clan)
             return
 
     # CHECK IF A CAT WANTS TO CHANGE INTO A MEDIATOR
@@ -91,7 +94,7 @@ def check_for_ceremony(main_cat: Cat):
             random.random() * (-0.7 * main_cat.moons + 100)
         ):
             if main_cat.status.rank == CatRank.DEPUTY:  # unset the deputy
-                game.clan.deputy = None
+                clan.deputy = None
 
             trigger_ceremony(main_cat, CatRank.ELDER)
             return
@@ -100,7 +103,7 @@ def check_for_ceremony(main_cat: Cat):
     if main_cat.moons == cat_class.age_moons[CatAge.ADOLESCENT][0]:
         if main_cat.status.rank == CatRank.KITTEN:
             # BECOME MEDICINE APPRENTICE
-            if _is_suitable_medcat_app(main_cat):
+            if _is_suitable_medcat_app(main_cat, clan):
                 trigger_ceremony(main_cat, CatRank.MEDICINE_APPRENTICE)
                 return
             elif _is_suitable_mediator_app(main_cat):
@@ -139,27 +142,36 @@ def get_leaders_kits():
     return leaders_kits
 
 
-def check_and_promote_deputy():
+def check_and_promote_deputy(clan=None):
     """
     Checks if a new deputy needs to be appointed, and appoints them if necessary.
     """
+    if clan is None:
+        clan = game.clan
+
     if (
-        game.clan.deputy
-        and game.clan.deputy.status.alive_in_player_clan
-        and game.clan.deputy.status.rank != CatRank.ELDER
+        clan.deputy
+        and clan.deputy.status.alive_in_player_clan
+        and clan.deputy.status.rank != CatRank.ELDER
     ):
         # don't need a new deputy
         return
 
     if not get_clan_setting("deputy"):
         # player doesn't want us to pick a dep for them
-        game.cur_events_list.insert(0, EventInformation("defaults.warn_no_deputy"))
+        game.cur_events_list.insert(
+            0, 
+            EventInformation(
+                "defaults.warn_no_deputy",
+                clan=game.clan.group_ID,
+                )
+            )
         return
 
     # This determines all the cats who are eligible to be deputy.
     possible_deputies = list(
         filter(
-            lambda x: x.status.alive_in_player_clan
+            lambda x: x.status.group_ID == clan.group_ID
             and x.status.rank == CatRank.WARRIOR
             and (x.apprentice or x.former_apprentices),
             Cat.all_cats_list,
@@ -167,7 +179,7 @@ def check_and_promote_deputy():
     )
 
     if (
-        get_config("ranks.deputy_eligibility.only_leader_kits_deputy")
+        get_config("ranks.only_leader_kits_deputy")
         and game.clan.leader is not None
     ):
         possible_deputies = [c for c in possible_deputies if c.ID in get_leaders_kits()]
@@ -179,14 +191,14 @@ def check_and_promote_deputy():
         # If there are no possible deputies, choose someone else, with special text.
         all_warriors = list(
             filter(
-                lambda x: x.status.alive_in_player_clan
+                lambda x: x.status.group_ID == clan.group_ID
                 and x.status.rank == CatRank.WARRIOR,
                 Cat.all_cats_list,
             )
         )
 
         if (
-            get_config("ranks.deputy_eligibility.only_leader_kits_deputy")
+            get_config("ranks.only_leader_kits_deputy")
             and game.clan.leader is not None
         ):
             # If none of the leader's kits meet all the requirements for deputy, choose one randomly, with special text.
@@ -196,12 +208,16 @@ def check_and_promote_deputy():
         else:
             # If there are no warriors at all, no one is named deputy.
             game.cur_events_list.append(
-                EventInformation(i18n.t("hardcoded.ceremony_deputy_none"), "ceremony")
+                EventInformation(
+                    i18n.t("hardcoded.ceremony_deputy_none"), 
+                    "ceremony",
+                    clan=game.clan.group_ID,
+                    )
             )
             return
 
-    trigger_ceremony(main_cat, CatRank.DEPUTY, {"past_deputy": game.clan.deputy})
-    game.clan.deputy = main_cat
+    trigger_ceremony(main_cat, CatRank.DEPUTY, {"past_deputy": clan.deputy})
+    clan.deputy = main_cat
 
 
 def _adult_becomes_mediator(cat) -> bool:
@@ -221,15 +237,17 @@ def _adult_becomes_mediator(cat) -> bool:
     return False
 
 
-def _handle_leader_ceremony(main_cat):
+def _handle_leader_ceremony(main_cat, clan=None):
     """
     Handles everything pertaining to a leader ceremony.
     """
-    game.clan.reset_leader_lives()
+    if clan is None:
+        clan = game.clan
+    clan.reset_leader_lives()
     trigger_ceremony(main_cat, CatRank.LEADER)
     main_cat.generate_lead_ceremony()
-    game.clan.deputy = None
-    game.clan.leader = main_cat
+    clan.deputy = None
+    clan.leader = main_cat
 
 
 def _is_suitable_mediator_app(main_cat: Cat) -> bool:
@@ -275,12 +293,15 @@ def _is_suitable_mediator_app(main_cat: Cat) -> bool:
     return False
 
 
-def _is_suitable_medcat_app(cat) -> bool:
+def _is_suitable_medcat_app(cat, clan=None) -> bool:
     """
     Determines whether this cat will become a medicine cat
     :param cat: A kitten preparing for apprenticeship ceremony
+    :param clan: The clan to which the cat belongs
     :return: True if the kitten should be a medcat, False otherwise
     """
+    if clan is None:
+        clan = game.clan
     # assign chance to become med app depending on current med cat and traits
     chance = constants.CONFIG["roles"]["base_medicine_app_chance"]  # 41
     logger.info("Medcat app %s starting chance: %d", str(cat.name), chance)
@@ -288,7 +309,8 @@ def _is_suitable_medcat_app(cat) -> bool:
     med_cat_list = [
         i
         for i in Cat.all_cats_list
-        if i.status.rank.is_any_medicine_rank() and i.status.alive_in_player_clan
+        if i.status.rank.is_any_medicine_rank() 
+        and i.status.group_ID == clan.group_ID
     ]
 
     num_medcats = len(med_cat_list)
@@ -303,7 +325,8 @@ def _is_suitable_medcat_app(cat) -> bool:
     # check if the Clan has sufficient med cats
     enough_working_meds = medicine_cats_can_cover_clan(
         Cat.all_cats.values(),
-        amount_per_med=get_amount_cat_for_one_medic(game.clan),
+        amount_per_med=get_amount_cat_for_one_medic(clan),
+        clan=clan,
     )
 
     if (

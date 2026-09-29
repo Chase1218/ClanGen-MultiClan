@@ -1546,7 +1546,7 @@ class OtherClan:
 
     @property
     def name(self):
-        return i18n.t("general.clan", name=self.prefix)
+        return f"{self.prefix}Clan"
 
     @name.setter
     def name(self, value):

@@ -434,7 +434,7 @@ def event_text_adjust(
 
     # lead_name
     if "lead_name" in text:
-        leader = Cat.fetch_cat(game.clan.leader)
+        leader = Cat.fetch_cat(clan.leader if clan else game.clan.leader)
         replace_dict["lead_name"] = (str(leader.name), choice(leader.pronouns))
 
     # dep_name

@@ -2,6 +2,7 @@ from random import randrange, choice
 
 import pygame
 import pygame_gui
+import i18n
 
 from scripts.cat.factories.create_example_cat import create_example_cats
 from scripts.cat.enums import CatRank
@@ -21,6 +22,7 @@ from scripts.ui.elements.text_box_tweaked import UITextBoxTweaked
 from scripts.ui.generate_button import ButtonStyles, get_button_dict
 from scripts.ui.scale import ui_scale, ui_scale_dimensions
 from scripts.ui.theme import get_text_box_theme
+
 
 
 class ChooseClancountScreen(MakeClanScreenBase):
@@ -58,14 +60,14 @@ class ChooseClancountScreen(MakeClanScreenBase):
         # Create all the elements.
         self.elements["singleclan_mode_button"] = UISurfaceImageButton(
             ui_scale(pygame.Rect((109, 240), (132, 30))),
-            "screens.make_clan.singleclan_label",
+            i18n.t("screens.make_clan.singleclan_label"),
             get_button_dict(ButtonStyles.SQUOVAL, (132, 30)),
             object_id="@buttonstyles_squoval",
             manager=MANAGER,
         )
         self.elements["multiclan_mode_button"] = UISurfaceImageButton(
             ui_scale(pygame.Rect((94, 320), (162, 34))),
-            "screens.make_clan.multiclan_label",
+            i18n.t("screens.make_clan.multiclan_label"),
             get_button_dict(ButtonStyles.SQUOVAL, (132, 30)),
             object_id="@buttonstyles_squoval",
             manager=MANAGER,
@@ -113,11 +115,11 @@ class ChooseClancountScreen(MakeClanScreenBase):
         """Refreshes the button states and text boxes"""
         # Set the mode explanation text
         if self.clan_count_mode == "singleclan":
-            display_text = "screens.make_clan.singleclan_info"
-            display_name = "screens.make_clan.singleclan_label"
+            display_text = i18n.t("screens.make_clan.singleclan_info")
+            display_name = i18n.t("screens.make_clan.singleclan_label")
         elif self.clan_count_mode == "multiclan":
-            display_text = "screens.make_clan.multiclan_info"
-            display_name = "screens.make_clan.multiclan_label"
+            display_text = i18n.t("screens.make_clan.multiclan_info")
+            display_name = i18n.t("screens.make_clan.multiclan_label")
         else:
             display_text = ""
             display_name = "ERROR"

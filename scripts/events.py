@@ -206,25 +206,63 @@ def one_moon():
         game.clan.grief_strings.clear()
 
     if game.dead_cats_to_grieve:
-        ghost_names = []
-        shaken_cats = []
+        ghost_names = {}
+        sorted_dead_cats = {}
+        shaken_cats = {}
         extra_event = None
         for ghost in game.dead_cats_to_grieve:
-            ghost_names.append(str(ghost.name))
-        insert = adjust_list_text(ghost_names)
+            last_living = ghost.status.get_last_living_group()
+            if ghost.status.is_exiled(last_living) or ghost.status.left_group(last_living):
+                pass
 
-        if len(game.dead_cats_to_grieve) > 1:
-            event = i18n.t(
-                "hardcoded.event_deaths",
-                count=len(game.dead_cats_to_grieve),
-                insert=insert,
-            )
+            elif last_living == CatGroup.PLAYER_CLAN_ID:
+                if game.clan.prefix not in ghost_names:
+                    ghost_names[game.clan.prefix] = []
+                    sorted_dead_cats[game.clan.prefix] = []
 
-            if len(ghost_names) > 2:
+                ghost_names[game.clan.prefix].append(str(ghost.name))
+                sorted_dead_cats[game.clan.prefix].append(ghost)
+        
+            elif (
+                group := next(
+                    filter(
+                        lambda c: last_living == c.group_ID,
+                        game.clan.all_other_clans,
+                    ),
+                    None,
+                )
+            ):
+                group = ghost.status.fetch_clan_object()
+
+                if group.prefix not in ghost_names:
+                    ghost_names[group.prefix] = []
+                    sorted_dead_cats[group.prefix] = []
+
+                ghost_names[group.prefix].append(str(ghost.name))
+                sorted_dead_cats[group.prefix].append(ghost)
+
+        for clan in [game.clan] + game.clan.all_other_clans:
+            if clan.prefix not in ghost_names:
+                continue
+
+            extra_event = None
+            insert = adjust_list_text(ghost_names[clan.prefix])
+
+            if len(ghost_names[clan.prefix]) > 1:
+                event = i18n.t(
+                    "hardcoded.event_deaths",
+                    count=len(ghost_names[clan.prefix]),
+                    insert=insert,
+                )
+            else:
+                event = i18n.t("hardcoded.event_deaths", count=1)
+
+            if len(ghost_names[clan.prefix]) > 2:
                 alive_cats = [
                     kitty
                     for kitty in Cat.all_cats.values()
-                    if kitty.status.alive_in_player_clan
+                    if not kitty.status.is_leader
+                    and kitty.status.group_ID == clan.group_ID
                 ]
 
                 # finds a percentage of the living Clan to become shaken
@@ -232,7 +270,7 @@ def one_moon():
                 if len(alive_cats) == 0:
                     return
                 else:
-                    shaken_cats = random.sample(
+                    shaken_cats[clan.prefix] = random.sample(
                         alive_cats,
                         k=max(
                             int((len(alive_cats) * random.randint(4, 6)) / 100),
@@ -241,7 +279,7 @@ def one_moon():
                     )
 
                 shaken_cat_names = []
-                for cat in shaken_cats:
+                for cat in shaken_cats[clan.prefix]:
                     shaken_cat_names.append(str(cat.name))
                     get_injured(
                         cat,
@@ -259,25 +297,27 @@ def one_moon():
                     insert=insert,
                 )
 
-        else:
-            event = i18n.t("hardcoded.event_deaths", count=1)
-
+        
         game.cur_events_list.append(
             EventInformation(
                 event,
                 ["birth_death"],
-                [i.ID for i in game.dead_cats_to_grieve],
+                [i.ID for i in sorted_dead_cats.get(clan.prefix, [])],
                 cat_dict=(
-                    {"m_c": game.dead_cats_to_grieve[0]}
-                    if len(game.dead_cats_to_grieve) == 1
+                    {"m_c": sorted_dead_cats[clan.prefix][0]}
+                    if len(sorted_dead_cats[clan.prefix]) == 1
                     else None
                 ),
+                clan=clan.group_ID,
             )
         )
         if extra_event:
             game.cur_events_list.append(
                 EventInformation(
-                    extra_event, ["birth_death"], [i.ID for i in shaken_cats]
+                    extra_event, 
+                    ["birth_death"], 
+                    [i.ID for i in shaken_cats[clan.prefix]],
+                    clan=clan.group_ID,
                 )
             )
         game.dead_cats_to_grieve.clear()
@@ -1034,7 +1074,7 @@ def one_moon_cat(cat, clan=None):
         elif debug_type_override == "misc":
             other_interactions(cat, clan)
         elif debug_type_override == "new_cat":
-            invite_new_cats(cat)
+            invite_new_cats(cat, clan)
 
     # handle nutrition amount
     # (CARE: the cats have to be fed before this happens - should be handled in "one_moon" function)
@@ -1073,7 +1113,7 @@ def one_moon_cat(cat, clan=None):
 
     handle_apprentice_EX(cat)  # This must be before perform_ceremonies!
     # this HAS TO be before the cat.is_disabled() so that disabled kits can choose a med cat or mediator position
-    check_for_ceremony(cat)
+    check_for_ceremony(cat, clan) 
     cat.skills.progress_skill(cat)  # This must be done after ceremonies.
 
     # check for death/reveal/risks/retire caused by permanent conditions
@@ -1096,7 +1136,7 @@ def one_moon_cat(cat, clan=None):
     if cat.is_ill() or cat.is_injured():
         return
 
-    invite_new_cats(cat)
+    invite_new_cats(cat, clan)
     other_interactions(cat, clan)
     gain_accessories(cat)
 
@@ -1383,17 +1423,20 @@ def handle_apprentice_EX(cat):
         cat.add_experience(max(exp * mentor_modifier, 1))
 
 
-def invite_new_cats(cat):
+def invite_new_cats(cat, clan=None):
     """
     new cats
     """
 
     global new_cat_invited
+    if clan is None:
+        clan = game.clan
 
     if constants.CONFIG["event_generation"]["debug_type_override"] == "new_cat":
         create_short_event(
             event_type="new_cat",
             main_cat=cat,
+            clan=clan,
         )
         return
 
@@ -1449,6 +1492,7 @@ def invite_new_cats(cat):
         create_short_event(
             event_type="new_cat",
             main_cat=cat,
+            clan=clan,
         )
 
 

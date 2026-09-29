@@ -94,7 +94,10 @@ def _handle_moving_on(cat: Cat, disable_random: bool = False):
                 text = i18n.t("hardcoded.move_on_dead_mate", mate=str(mate.name))
                 game.cur_events_list.append(
                     EventInformation(
-                        text, ["relation"], cat_dict={"m_c": cat, "r_c": mate}
+                        text, 
+                        ["relation"],
+                        cat_dict={"m_c": cat, "r_c": mate},
+                        clan=cat.status.group_ID,
                     )
                 )
                 cat.unset_mate(mate)
@@ -185,6 +188,7 @@ def _attempt_breakup(cat_from: Cat, cat_to: Cat, disable_random: bool = False):
             ["relation", "misc"],
             [cat_from.ID, cat_to.ID],
             cat_dict={"m_c": cat_from, "r_c": cat_to},
+            clan=cat_from.status.group_ID,
         )
     )
 
@@ -340,6 +344,7 @@ def _attempt_confession(cat_from: Cat) -> bool:
             mate_string,
             ["relation", "misc"],
             cat_dict={"m_c": cat_from, "r_c": cat_to},
+            clan=cat_from.status.group_ID,
         )
     )
 
@@ -544,6 +549,7 @@ def _attempt_mutual_interest_mates(
             mate_string,
             ["relation", "misc"],
             cat_dict={"m_c": cat_from, "r_c": cat_to},
+            clan=cat_from.status.group_ID,
         )
     )
 

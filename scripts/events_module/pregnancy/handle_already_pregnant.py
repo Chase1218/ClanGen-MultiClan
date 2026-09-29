@@ -75,7 +75,12 @@ def handle_one_moon_pregnant(cat: Cat):
 
     text = event_text_adjust(Cat, text, main_cat=cat, clan=game.clan)
     game.cur_events_list.append(
-        EventInformation(text, ["birth_death"], cat_dict={"m_c": cat})
+        EventInformation(
+            text, 
+            ["birth_death"], 
+            cat_dict={"m_c": cat},
+            clan=cat.status.group_ID
+        )
     )
 
 
@@ -310,7 +315,11 @@ def handle_two_moon_pregnant(cat: Cat):
     # display event
     game.cur_events_list.append(
         EventInformation(
-            print_event, ["health", "birth_death"], involved_cats, cat_dict=cat_dict
+            print_event, 
+            ["health", "birth_death"], 
+            involved_cats, 
+            cat_dict=cat_dict,
+            clan=cat.status.group_ID,
         )
     )
 
@@ -672,5 +681,6 @@ def _handle_affair_discovery_breakup(cheating_cat: Cat, mate_cat: Cat):
                 ["relation", "misc"],
                 [mate_cat.ID, cheating_cat.ID],
                 cat_dict={"m_c": mate_cat, "r_c": cheating_cat},
+                clan=mate_cat.status.group_ID,
             )
         )

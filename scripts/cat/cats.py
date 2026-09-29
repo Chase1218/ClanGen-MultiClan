@@ -484,16 +484,18 @@ class Cat:
         """
         return not self.dead
 
-    def die(self, body: bool = True, grief_allowed: bool = True):
+    def die(self, body: bool = True, grief_allowed: bool = True, clan=None):
         """Kills cat.
         :param body: defaults to True, use this to mark if the body was recovered so
         that grief messages will align with body status
         :param grief_allowed: defaults to True, set to False if death should not trigger grief
         """
+        if clan is None:
+            clan=self.status.fetch_clan_object(game.clan)
         if (
             self.status.is_leader
             and "pregnant" in self.injuries
-            and game.clan.leader_lives > 0
+            and clan.leader_lives > 0
         ):
             self.illnesses.clear()
 
@@ -508,14 +510,14 @@ class Cat:
 
         # Deal with leader death
         if self.status.is_leader:
-            if game.clan.leader_lives > 0:
+            if clan.leader_lives > 0:
                 self.assign_thought(CatThought.ON_DEATH)
                 return
 
-            if game.clan.leader_lives <= 0:
+            if clan.leader_lives <= 0:
                 self.dead = True
                 game.just_died.append(self.ID)
-                game.clan.leader_lives = 0
+                clan.leader_lives = 0
 
         else:
             self.dead = True
@@ -935,7 +937,7 @@ class Cat:
         life_givers = []
         dead_relations = []
         life_giving_leader = None
-        num_of_lives_to_give = game.clan.leader_lives
+        num_of_lives_to_give = clan.leader_lives
 
         # grab life givers that the cat actually knew in life and sort by amount of relationship!
         relationships = self.relationships.values()
@@ -1284,7 +1286,7 @@ class Cat:
         if mortality and not int(random() * mortality):
             if self.status.is_leader:
                 self.leader_death_heal = True
-                game.clan.leader_lives -= 1
+                clan.leader_lives -= 1
 
             self.die()
             return False
@@ -1327,7 +1329,7 @@ class Cat:
 
         if mortality and not int(random() * mortality):
             if self.status.is_leader:
-                game.clan.leader_lives -= 1
+                clan.leader_lives -= 1
             self.die()
             return False
 
@@ -1389,7 +1391,7 @@ class Cat:
 
         if mortality and not int(random() * mortality):
             if self.status.is_leader:
-                game.clan.leader_lives -= 1
+                clan.leader_lives -= 1
             self.die()
             return "continue"
 

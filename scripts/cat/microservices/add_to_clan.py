@@ -5,17 +5,17 @@ from scripts.cat.enums import CatGroup
 from scripts.game_structure import game
 
 
-def add_to_clan(cat):
+def add_to_clan(cat, group_ID=CatGroup.PLAYER_CLAN_ID):
     """Makes an "outside cat" a Clan cat. Returns a list of IDs for any additional cats that
     are coming with them.
     """
 
-    if not cat.status.is_exiled(CatGroup.PLAYER_CLAN_ID):
+    if not cat.status.is_exiled(group_ID):
         cat.history.add_beginning()
 
-    cat.status.add_to_group(new_group_ID=CatGroup.PLAYER_CLAN_ID, age=cat.age)
+    cat.status.add_to_group(new_group_ID=group_ID, age=cat.age)
 
-    if game.clan:
+    if group_ID == game.clan.group_ID:
         game.clan.add_cat(cat)
 
 

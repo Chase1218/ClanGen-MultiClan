@@ -125,7 +125,14 @@ def _handle_pregnancy_notice(pregnant_cat, second_parent):
         text, involved_cats = _create_pregnancy_announcement(
             pregnant_cat, "announcement", random_cat=second_parent
         )
-    game.cur_events_list.append(EventInformation(text, ["birth_death"], involved_cats))
+    game.cur_events_list.append(
+        EventInformation(
+            text, 
+            ["birth_death"], 
+            involved_cats,
+            clan=pregnant_cat.status.group_ID
+            )
+        )
 
 
 def _create_pregnancy_data(pregnant_cat: Cat, second_parent: Optional[Cat]):
@@ -150,7 +157,11 @@ def _retrieve_secret_kittens(cat):
         cats_involved.append(kit.ID)
     game.cur_events_list.append(
         EventInformation(
-            print_event, ["birth_death"], cats_involved, cat_dict={"m_c": cat}
+            print_event, 
+            ["birth_death"], 
+            cats_involved, 
+            cat_dict={"m_c": cat},
+            clan=cat.status.group_ID
         )
     )
 

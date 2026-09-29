@@ -49,12 +49,15 @@ def execute_outcome(
     event_involved_cats: dict[str, Union[Cat, list[Cat]]],
     other_clan: OtherClan = None,
     chosen_poi: str = None,
+    clan=None,
 ) -> tuple[str, str, dict]:
     """
     Executes the outcome, applying any specified consequences.
     If new cats are created, event_involved_cats *will* be modified to add the newly created cats.
     :returns: Outcome text, results text, list of created rel logs (might be empty)
     """
+    if clan is None:
+        clan = game.clan
 
     # Must start with cat creation.
     create_needed_cats(event, event_involved_cats, other_clan)
@@ -66,7 +69,7 @@ def execute_outcome(
         Cat,
         chosen_string,
         involved_cat_dict=event_involved_cats,
-        clan=game.clan,
+        clan=clan,
         other_clan=other_clan,
         chosen_poi=chosen_poi,
     )
@@ -99,7 +102,7 @@ def execute_outcome(
                     Cat,
                     block["log"][group],
                     involved_cat_dict=event_involved_cats,
-                    clan=game.clan,
+                    clan=clan,
                     other_clan=other_clan,
                     chosen_poi=chosen_poi,
                 )

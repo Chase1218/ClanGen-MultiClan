@@ -87,15 +87,19 @@ def create_short_event(
         other_clan = enemy_clan
         sub_types.append("war")
     else:
-        other_clan = random.choice(
-            game.clan.all_other_clans if game.clan.all_other_clans else None
-        )
+        possible_other_clans = [
+            other
+            for other in game.clan.all_other_clans
+            if other.group_ID != clan.group_ID
+        ]
+
+        other_clan = random.choice(possible_other_clans) if possible_other_clans else None
 
     # collecting CAMP skill cats for reduction events
     camp_cats = [
         c
         for c in Cat.all_cats_list
-        if c.status.alive_in_player_clan and SkillPath.CAMP in c.skills.get_all()
+        if c.status.group_ID == clan.group_ID and SkillPath.CAMP in c.skills.get_all()
     ]
 
     avoidance_chance = 1
@@ -162,7 +166,7 @@ def create_short_event(
         chosen_event.types = types
 
         # execute the event
-        chosen_event.execute_event(other_clan)
+        chosen_event.execute_event(other_clan, clan)
 
     else:
         # this doesn't necessarily mean there's a problem, but can be helpful for narrowing down possibilities

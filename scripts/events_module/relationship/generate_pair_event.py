@@ -318,7 +318,12 @@ def _resolve_event(
     cat_ids = [c.ID for c in involved_cats.values()]
     # append the event to the events list!
     game.cur_events_list.append(
-        EventInformation(event_string, ["relation", "interaction"], cat_ids)
+        EventInformation(
+            event_string, 
+            ["relation", "interaction"], 
+            cat_ids,
+            clan=involved_cats["m_c"].status.group_ID,
+            )
     )
 
     # APPLY INFLUENCE ON RELATIONSHIPS

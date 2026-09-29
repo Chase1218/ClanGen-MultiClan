@@ -218,11 +218,14 @@ class ShortEvent:
         self.chosen_herb: str = ""
         self.herb_notice: str = ""
 
-    def execute_event(self, other_clan=None):
+    def execute_event(self, other_clan=None, clan=None):
         """
         Handles the execution of this event.
         :param other_clan: the object for the other clan involved in this event
+        :param clan: the object for the current clan
         """
+        if clan is None:
+            clan = game.clan
         self.additional_event_text = ""
         self.text = self.text_template
         self.all_involved_cat_ids.clear()
@@ -250,7 +253,7 @@ class ShortEvent:
                 return
 
         # create new cats (must happen here so that new cats can be included in further changes)
-        self.handle_new_cats(other_clan)
+        self.handle_new_cats(other_clan, clan)
 
         # remove cats from involved_cats if they're supposed to be
         if self.r_c and "r_c" in self.exclude_involved:
@@ -285,7 +288,7 @@ class ShortEvent:
                 victim_cat=self.victim_cat,
                 new_cats=self.new_cats,
                 other_clan=other_clan,
-                clan=game.clan,
+                clan=clan,
                 chosen_poi=chosen_poi,
             )
             for change in self.relationships:
@@ -322,7 +325,7 @@ class ShortEvent:
         self.handle_death()
 
         # add necessary histories
-        self.handle_death_history()
+        self.handle_death_history(clan)
 
         # handle injuries and injury history
         self.handle_injury()
@@ -374,7 +377,7 @@ class ShortEvent:
             victim_cat=self.victim_cat,
             new_cats=self.new_cats,
             multi_cats=self.multi_cat_objects,
-            clan=game.clan,
+            clan=clan,
             other_clan=other_clan,
             chosen_herb=self.chosen_herb,
             chosen_poi=chosen_poi,
@@ -390,6 +393,7 @@ class ShortEvent:
                 self.text + " " + self.additional_event_text,
                 self.types,
                 self.all_involved_cat_ids,
+                 clan=self.main_cat.status.get_last_living_group(),
             )
         )
 
@@ -415,12 +419,14 @@ class ShortEvent:
             possible_cats=possible_cats,
         )
 
-    def handle_new_cats(self, other_clan=None):
+    def handle_new_cats(self, other_clan=None, clan=None):
         """
         handles adding new cats to the clan
         :param other_clan: the object for the other clan involved in event
+        :param clan: the object for the current clan
         """
-
+        if clan is None:
+            clan = game.clan
         if not self.new_cat_attributes:
             return
 
@@ -442,7 +448,8 @@ class ShortEvent:
                     in_event_cats,
                     i,
                     attribute_list,
-                    other_clan,
+                    other_clan=other_clan,
+                    clan=clan
                 )
             )
             in_event_cats[f"n_c:{i}"] = self.new_cats[i][0]
@@ -674,10 +681,12 @@ class ShortEvent:
         else:
             return
 
-    def handle_death_history(self):
+    def handle_death_history(self, clan=None):
         """
         handles assigning histories
         """
+        if clan is None:
+            clan = game.clan
         for block in self.history:
             # main_cat's history
             if "m_c" in block["cats"]:
@@ -693,7 +702,7 @@ class ShortEvent:
                     death_history = history_text_adjust(
                         block.get("death"),
                         self.other_clan_name,
-                        game.clan,
+                        clan,
                         self.random_cat,
                     )
 

@@ -33,6 +33,7 @@ from scripts.cat.enums import CatAge, CatRank, CatSocial, CatStanding
 from scripts.cat.personality import Personality
 from scripts.cat.skills import SkillPath
 from scripts.game_structure import constants
+from scripts.cat.microservices.conditions import get_injured
 
 
 class CrossClanEvent(ShortEvent):
@@ -238,14 +239,14 @@ class CrossClanEvent(ShortEvent):
                 # MAIN CAT
                 if abbr == "m_c":
                     injury = choice(possible_injuries)
-                    self.main_cat.get_injured(injury, potential_scars=potential_scars)
+                    get_injured(main_cat, injury, potential_scars=potential_scars)
                     self.handle_injury_history(self.main_cat, "m_c", injury)
 
                 # RANDOM CAT
                 elif abbr == "r_c":
                     injury = choice(possible_injuries)
                     for random_cat in self.random_cats:
-                        random_cat.get_injured(injury, potential_scars=potential_scars)
+                        get_injured(random_cat, injury, potential_scars=potential_scars)
                         self.handle_injury_history(random_cat, "r_c", injury)
 
                 # NEW CATS

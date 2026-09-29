@@ -968,7 +968,8 @@ class ProfileScreen(Screens):
         if not the_cat.dead and CatRank.LEADER in the_cat.status.rank:
             output += " "
             output += i18n.t(
-                "screens.profile.lives_remaining_label", count=game.clan.leader_lives
+                "screens.profile.lives_remaining_label", 
+                count=self.the_cat.status.fetch_clan_object(game.clan).leader_lives
             )
 
         # NEWLINE ----------

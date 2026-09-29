@@ -43,7 +43,9 @@ def create_ceremony(
 
     # we won't actually use results or rel results for ceremonies
     processed_string, results, rel_results = execute_outcome(
-        chosen_ceremony, involved_cats
+        chosen_ceremony, 
+        involved_cats,
+        clan=main_cat.status.fetch_clan_object(game.clan),
     )
 
     # cats to be displayed as buttons under the event
@@ -55,5 +57,10 @@ def create_ceremony(
     )
 
     game.cur_events_list.append(
-        EventInformation(processed_string, ["ceremony"], [c.ID for c in button_cats])
+        EventInformation(
+            processed_string, 
+            ["ceremony"], 
+            [c.ID for c in button_cats],
+            clan=main_cat.status.group_ID
+        )
     )

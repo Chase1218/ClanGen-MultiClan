@@ -60,6 +60,7 @@ def _generate_transition_event(main_cat: Cat):
             processed_text,
             ["misc"],
             [c.ID for c in involved_cats.values()],
+            clan=main_cat.status.group_ID,
         )
     )
 
@@ -81,5 +82,6 @@ def _handle_event(
         event=chosen_event,
         event_involved_cats=involved_cats,
         other_clan=other_clan,
+        clan=main_cat.status.fetch_clan_object(game.clan),
     )
     return processed_text

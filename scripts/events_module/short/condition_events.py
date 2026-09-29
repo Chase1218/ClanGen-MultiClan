@@ -201,7 +201,12 @@ class Condition_Events:
 
             types = ["birth_death"]
             game.cur_events_list.append(
-                EventInformation(event, types, cat_dict={"m_c": cat})
+                EventInformation(
+                    event, 
+                    types, 
+                    cat_dict={"m_c": cat},
+                    clan=cat.status.group_ID
+                    )
             )
             return
 
@@ -254,7 +259,12 @@ class Condition_Events:
             event_text = event_text_adjust(Cat, event, main_cat=cat)
             types = ["health"]
             game.cur_events_list.append(
-                EventInformation(event_text, types, cat_dict={"m_c": cat})
+                EventInformation(
+                    event_text, 
+                    types, 
+                    cat_dict={"m_c": cat},
+                    clan=cat.status.group_ID
+                    )
             )
 
     @staticmethod
@@ -343,7 +353,12 @@ class Condition_Events:
             if cat.dead:
                 types.append("birth_death")
             game.cur_events_list.append(
-                EventInformation(event_string, types, cat_dict=cat_dict)
+                EventInformation(
+                    event_string, 
+                    types, 
+                    cat_dict=cat_dict,
+                    clan=cat.status.group_ID
+                )
             )
 
         # just double-checking that trigger is only returned True if the cat is dead
@@ -601,7 +616,7 @@ class Condition_Events:
 
             # death event text and break bc any other illnesses no longer matter
             if cat.dead or (
-                cat.status.is_leader and starting_life_count != game.clan.leader_lives
+                cat.status.is_leader and starting_life_count != clan.leader_lives
             ):
                 try:
                     possible_string_list = Condition_Events.ILLNESS_DEATH_STRINGS[
@@ -908,7 +923,12 @@ class Condition_Events:
             if cat.dead:
                 types.append("birth_death")
             game.cur_events_list.append(
-                EventInformation(event_string, types, cat_dict=cat_dict)
+                EventInformation(
+                    event_string, 
+                    types, 
+                    cat_dict=cat_dict,
+                    clan=cat.status.group_ID
+                )
             )
 
         return triggered
@@ -1049,7 +1069,12 @@ class Condition_Events:
         if len(event_list) > 0:
             event_string = " ".join(event_list)
             game.cur_events_list.append(
-                EventInformation(event_string, event_types, cat_dict=cat_dict)
+                EventInformation(
+                    event_string, 
+                    event_types, 
+                    cat_dict=cat_dict,
+                    clan=cat.status.group_ID
+                )
             )
         return
 
@@ -1128,6 +1153,7 @@ class Condition_Events:
                             ["ceremony"],
                             retire_involved,
                             cat_dict=cat_dict,
+                            clan=cat.status.group_ID
                         )
                     )
 

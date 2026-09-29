@@ -746,16 +746,28 @@ class ListScreen(Screens):
             group = self.clan_name
             first_temper, second_temper = game.clan.temperament
 
-        else:
-            if self.current_group == "dark_forest":
-                group = i18n.t(f"general.the_dark_forest")
-            else:
-                group = i18n.t(f"general.{self.current_group}")
-            if self.current_group == "starclan":
-                first_temper, second_temper = game.starclan.temperament
-            else:
-                first_temper, second_temper = game.dark_forest.temperament
+        elif self.current_group == "dark_forest":
+            group = i18n.t("general.the_dark_forest")
+            first_temper, second_temper = game.dark_forest.temperament
 
+        elif self.current_group == "starclan":
+            group = i18n.t("general.starclan")
+            first_temper, second_temper = game.starclan.temperament
+
+        else:
+            other_clan = next(
+                (
+                    clan
+                    for clan in game.clan.all_other_clans
+                    if clan.name == self.current_group
+                ),
+                None,
+            )
+
+            if other_clan:
+                group = other_clan.name
+                first_temper, second_temper = other_clan.temperament
+        
         first = i18n.t(f"screens.leader_den.{first_temper}")
         second = i18n.t(f"screens.leader_den.{second_temper}")
         temper = i18n.t(
