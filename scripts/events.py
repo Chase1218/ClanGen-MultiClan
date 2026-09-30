@@ -232,8 +232,6 @@ def one_moon():
                     None,
                 )
             ):
-                group = ghost.status.fetch_clan_object()
-
                 if group.prefix not in ghost_names:
                     ghost_names[group.prefix] = []
                     sorted_dead_cats[group.prefix] = []
@@ -266,10 +264,7 @@ def one_moon():
                 ]
 
                 # finds a percentage of the living Clan to become shaken
-
-                if len(alive_cats) == 0:
-                    return
-                else:
+                if alive_cats:
                     shaken_cats[clan.prefix] = random.sample(
                         alive_cats,
                         k=max(
@@ -278,48 +273,48 @@ def one_moon():
                         ),
                     )
 
-                shaken_cat_names = []
-                for cat in shaken_cats[clan.prefix]:
-                    shaken_cat_names.append(str(cat.name))
-                    get_injured(
-                        cat,
-                        "shock",
-                        event_triggered=False,
-                        lethal=False,
-                        severity="minor",
+                    shaken_cat_names = []
+                    for cat in shaken_cats[clan.prefix]:
+                        shaken_cat_names.append(str(cat.name))
+                        get_injured(
+                            cat,
+                            "shock",
+                            event_triggered=False,
+                            lethal=False,
+                            severity="minor",
+                        )
+
+                    insert = adjust_list_text(shaken_cat_names)
+
+                    extra_event = i18n.t(
+                        "hardcoded.event_shaken_grief",
+                        count=len(shaken_cat_names),
+                        insert=insert,
                     )
 
-                insert = adjust_list_text(shaken_cat_names)
-
-                extra_event = i18n.t(
-                    "hardcoded.event_shaken_grief",
-                    count=len(shaken_cat_names),
-                    insert=insert,
-                )
-
-        
-        game.cur_events_list.append(
-            EventInformation(
-                event,
-                ["birth_death"],
-                [i.ID for i in sorted_dead_cats.get(clan.prefix, [])],
-                cat_dict=(
-                    {"m_c": sorted_dead_cats[clan.prefix][0]}
-                    if len(sorted_dead_cats[clan.prefix]) == 1
-                    else None
-                ),
-                clan=clan.group_ID,
-            )
-        )
-        if extra_event:
+            # every Clan with deaths gets its own event
             game.cur_events_list.append(
                 EventInformation(
-                    extra_event, 
-                    ["birth_death"], 
-                    [i.ID for i in shaken_cats[clan.prefix]],
+                    event,
+                    ["birth_death"],
+                    [i.ID for i in sorted_dead_cats.get(clan.prefix, [])],
+                    cat_dict=(
+                        {"m_c": sorted_dead_cats[clan.prefix][0]}
+                        if len(sorted_dead_cats[clan.prefix]) == 1
+                        else None
+                    ),
                     clan=clan.group_ID,
                 )
             )
+            if extra_event:
+                game.cur_events_list.append(
+                    EventInformation(
+                        extra_event, 
+                        ["birth_death"], 
+                        [i.ID for i in shaken_cats[clan.prefix]],
+                        clan=clan.group_ID,
+                    )
+                )
         game.dead_cats_to_grieve.clear()
 
     if game.clan.game_mode in ("expanded", "cruel_season") and game.clan.freshkill_pile:

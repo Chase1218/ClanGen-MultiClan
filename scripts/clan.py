@@ -435,7 +435,7 @@ class Clan:
 
         # create leader's ceremony and give lives
         if self.leader:
-            self.leader.generate_lead_ceremony()
+            self.leader.generate_lead_ceremony(self)
 
         self.save_clan()
         save_clanlist(self.save_id)
@@ -593,11 +593,12 @@ class Clan:
         """
 
         if leader:
-            leader.generate_lead_ceremony()
+            # the new leader's lives are rolled first, so the ceremony gives that many
+            self.reset_leader_lives()
+            leader.generate_lead_ceremony(self)
             self.leader = leader
             Cat.all_cats[leader.ID].rank_change(CatRank.LEADER)
             self.leader_predecessors += 1
-            self.reset_leader_lives()
 
         # todo: this leads nowhere, can it be deleted?
         switch_set_value(Switch.new_leader, None)
@@ -1543,6 +1544,11 @@ class OtherClan:
     def __repr__(self):
         # has indicators that this is unlocalized, just in case
         return f"!!{self.name}Clan!!"
+
+    @property
+    def game_mode(self):
+        # the game mode is picked for the whole game, other Clans play by the same one
+        return game.clan.game_mode if game.clan else "classic"
 
     @property
     def name(self):

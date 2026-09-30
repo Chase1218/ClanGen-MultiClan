@@ -245,7 +245,7 @@ def _handle_leader_ceremony(main_cat, clan=None):
         clan = game.clan
     clan.reset_leader_lives()
     trigger_ceremony(main_cat, CatRank.LEADER)
-    main_cat.generate_lead_ceremony()
+    main_cat.generate_lead_ceremony(clan)
     clan.deputy = None
     clan.leader = main_cat
 
