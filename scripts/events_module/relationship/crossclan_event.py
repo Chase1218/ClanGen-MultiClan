@@ -239,7 +239,7 @@ class CrossClanEvent(ShortEvent):
                 # MAIN CAT
                 if abbr == "m_c":
                     injury = choice(possible_injuries)
-                    get_injured(main_cat, injury, potential_scars=potential_scars)
+                    get_injured(self.main_cat, injury, potential_scars=potential_scars)
                     self.handle_injury_history(self.main_cat, "m_c", injury)
 
                 # RANDOM CAT

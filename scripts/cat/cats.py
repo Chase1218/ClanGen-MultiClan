@@ -893,8 +893,11 @@ class Cat:
 
             print(f"WARNING: saving history of cat #{self.ID} didn't work")
 
-    def generate_lead_ceremony(self):
-        """Create a leader ceremony and add it to the history"""
+    def generate_lead_ceremony(self, clan=None):
+        """Create a leader ceremony and add it to the history
+        :param clan: the Clan this cat is becoming leader of, defaults to the cat's own Clan"""
+        if clan is None:
+            clan = self.status.fetch_clan_object(game.clan) or game.clan
 
         load_leader_ceremonies()
 
@@ -1333,7 +1336,7 @@ class Cat:
 
         if mortality and not int(random() * mortality):
             if self.status.is_leader:
-                clan.leader_lives -= 1
+                self.status.fetch_clan_object(game.clan).leader_lives -= 1
             self.die()
             return False
 
@@ -1395,7 +1398,7 @@ class Cat:
 
         if mortality and not int(random() * mortality):
             if self.status.is_leader:
-                clan.leader_lives -= 1
+                self.status.fetch_clan_object(game.clan).leader_lives -= 1
             self.die()
             return "continue"
 
