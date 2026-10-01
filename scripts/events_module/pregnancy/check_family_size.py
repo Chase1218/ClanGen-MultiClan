@@ -23,10 +23,16 @@ def get_biggest_family() -> dict:
     return biggest_family
 
 
-def biggest_family_is_big():
+def biggest_family_is_big(group_ID=None):
     """Returns if the current biggest family is big enough to 'activates' additional inbreeding counters."""
 
     living_cats = len(
-        [i for i in Cat.all_cats.values() if i.status.alive_in_player_clan]
+        [
+            i 
+            for i in Cat.all_cats.values() 
+            if i.status.group_ID == group_ID
+            and not i.dead
+            and i.status.is_clancat
+            ]
     )
     return len(biggest_family) > (living_cats / 10)

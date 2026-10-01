@@ -86,7 +86,7 @@ logger = logging.getLogger(__name__)
 
 
 all_events = {}
-new_cat_invited = False
+new_cat_invited = set ()
 WAR_TXT = None
 war_lang = None
 
@@ -103,7 +103,7 @@ def one_moon():
     game.freshkill_event_list = []
     game.mediated = []
     switch_set_value(Switch.saved_clan, False)
-    new_cat_invited = False
+    new_cat_invited.clear()
     relation_events.clear_trigger_dict()
     Patrol.used_patrols["normal"].clear()
     Patrol.used_patrols["romance"].clear()
@@ -179,7 +179,7 @@ def one_moon():
         for ID in game.clan.grief_strings.copy():
             check_cat = Cat.all_cats.get(ID)
             if isinstance(check_cat, Cat):
-                if check_cat.dead or not check_cat.status.alive_in_player_clan:
+                if check_cat.dead or not check_cat.status.is_clancat:
                     game.clan.grief_strings.pop(ID)
 
         # Generate events
@@ -200,7 +200,13 @@ def one_moon():
 
                 else:
                     game.cur_events_list.append(
-                        EventInformation(text, ["birth_death", "relation"], cats)
+                        EventInformation(
+                            text, 
+                            ["birth_death", 
+                            "relation"],
+                            cats,
+                            clan=grieving_cat.status.group_ID
+                        )
                     )
 
         game.clan.grief_strings.clear()
@@ -232,7 +238,7 @@ def one_moon():
                     None,
                 )
             ):
-                group = ghost.status.fetch_clan_object()
+                group = ghost.status.fetch_clan_object(game.clan)
 
                 if group.prefix not in ghost_names:
                     ghost_names[group.prefix] = []
@@ -298,29 +304,29 @@ def one_moon():
                 )
 
         
-        game.cur_events_list.append(
-            EventInformation(
-                event,
-                ["birth_death"],
-                [i.ID for i in sorted_dead_cats.get(clan.prefix, [])],
-                cat_dict=(
-                    {"m_c": sorted_dead_cats[clan.prefix][0]}
-                    if len(sorted_dead_cats[clan.prefix]) == 1
-                    else None
-                ),
-                clan=clan.group_ID,
-            )
-        )
-        if extra_event:
             game.cur_events_list.append(
                 EventInformation(
-                    extra_event, 
-                    ["birth_death"], 
-                    [i.ID for i in shaken_cats[clan.prefix]],
+                    event,
+                    ["birth_death"],
+                    [i.ID for i in sorted_dead_cats.get(clan.prefix, [])],
+                    cat_dict=(
+                        {"m_c": sorted_dead_cats.get(clan.prefix, [])[0]}
+                        if len(sorted_dead_cats.get(clan.prefix, [])) == 1
+                        else None
+                    ),
                     clan=clan.group_ID,
                 )
             )
-        game.dead_cats_to_grieve.clear()
+            if extra_event:
+                game.cur_events_list.append(
+                    EventInformation(
+                        extra_event, 
+                        ["birth_death"], 
+                        [i.ID for i in shaken_cats[clan.prefix]],
+                        clan=clan.group_ID,
+                    )
+                )
+            game.dead_cats_to_grieve.clear()
 
     if game.clan.game_mode in ("expanded", "cruel_season") and game.clan.freshkill_pile:
         # make a notification if the Clan does not have enough prey
@@ -372,6 +378,10 @@ def one_moon():
     # Promote leader and deputy, if needed.
     check_leader()
     check_and_promote_deputy()
+
+    if game.clan.clancount == "multiclan":
+        for other_clan in game.clan.all_other_clans:
+            check_and_promote_deputy(other_clan)
 
     # Resort
     if switch_get_value(Switch.sort_type) != "id":
@@ -1442,15 +1452,14 @@ def invite_new_cats(cat, clan=None):
 
     chance = 200
 
-    alive_cats = list(
-        filter(
-            lambda kitty: (
-                kitty.status.rank != CatRank.LEADER
-                and kitty.status.alive_in_player_clan
-            ),
-            Cat.all_cats.values(),
-        )
-    )
+    alive_cats = [
+        kitty
+        for kitty in Cat.all_cats.values()
+        if kitty.status.group_ID == clan.group_ID
+        and not kitty.dead
+        and kitty.status.is_clancat
+        and kitty.status.rank != CatRank.LEADER
+    ]
 
     clan_size = len(alive_cats)
 
@@ -1485,9 +1494,9 @@ def invite_new_cats(cat, clan=None):
     if (
         not int(random.random() * chance)
         and not cat.age.is_baby()
-        and not new_cat_invited
+        and clan.group_ID not in new_cat_invited
     ):
-        new_cat_invited = True
+        new_cat_invited.add(clan.group_ID)
 
         create_short_event(
             event_type="new_cat",
@@ -1905,7 +1914,12 @@ def handle_outbreaks(cat):
                 )
 
             game.cur_events_list.append(
-                EventInformation(event, ["health"], involved_cats)
+                EventInformation(
+                    event, 
+                    ["health"], 
+                    involved_cats,
+                    clan=cat.status.group_ID,
+                )
             )
             # game.health_events_list.append(event)
             break

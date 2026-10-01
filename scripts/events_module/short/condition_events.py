@@ -870,6 +870,12 @@ class Condition_Events:
                         working=True,
                     )
 
+                    med_list = [
+                        med_cat
+                        for med_cat in med_list
+                        if med_cat.status.group_ID == cat.status.group_ID
+                    ]
+
                     # If the cat is a med cat, don't consider them as one for the event.
                     if cat in med_list:
                         med_list.remove(cat)
@@ -1010,6 +1016,13 @@ class Condition_Events:
                     working=True,
                     sort=True,
                 )
+
+                med_list = [
+                    med_cat
+                    for med_cat in med_list
+                    if med_cat.status.group_ID == cat.status.group_ID
+                ]
+
                 med_cat = None
                 has_parents = False
                 if cat.parent1 is not None and cat.parent2 is not None:
@@ -1251,6 +1264,11 @@ class Condition_Events:
                         working=True,
                         sort=True,
                     )
+                    med_list = [
+                        med_cat
+                        for med_cat in med_list
+                        if med_cat.status.group_ID == cat.status.group_ID
+                    ]
                     if len(med_list) == 0:
                         if random_index == 0:
                             random_index = 1

@@ -145,7 +145,7 @@ def get_second_parent(cat: Cat) -> tuple[Optional[Cat], bool]:
     # 'buff' affairs & coparenting if the current biggest family is big + this cat doesn't belong there
     biggest_family = get_biggest_family()
 
-    if biggest_family_is_big() and cat.ID not in biggest_family:
+    if biggest_family_is_big(cat.status.group_ID) and cat.ID not in biggest_family:
         chance = int(chance * 0.8)
 
     # "regular" random fling

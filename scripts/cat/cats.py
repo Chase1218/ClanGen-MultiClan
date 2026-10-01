@@ -533,11 +533,13 @@ class Cat:
 
         # handle grief
         # since we just yeeted them to their afterlife, we gotta check their previous group affiliation, not current
+        last_living_group = self.status.get_last_living_group()
+        
         if (
             grief_allowed
             and game.clan
-            and self.status.get_last_living_group() == CatGroup.PLAYER_CLAN_ID
-            and not self.status.is_exiled(CatGroup.PLAYER_CLAN_ID)
+            and last_living_group is not None
+            and not self.status.is_exiled(last_living_group)
         ):
             grief(self, body)
             game.dead_cats_to_grieve.append(self)
@@ -1286,7 +1288,9 @@ class Cat:
         if mortality and not int(random() * mortality):
             if self.status.is_leader:
                 self.leader_death_heal = True
+                clan = self.status.fetch_clan_object(game.clan)
                 clan.leader_lives -= 1
+
 
             self.die()
             return False
@@ -2523,6 +2527,13 @@ class Cat:
 
         # we're doing this separately so that we don't fuck up other clan cats and cats with no group
         if self.dead:
+            sorted_specific_list = [
+                check_cat
+                for check_cat in sorted_specific_list
+                if check_cat.status.group_ID == self.status.group_ID
+            ]
+
+        if not self.dead and self.status.is_clancat:
             sorted_specific_list = [
                 check_cat
                 for check_cat in sorted_specific_list

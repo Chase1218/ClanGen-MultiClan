@@ -18,7 +18,7 @@ from scripts.game_structure import game
 def handle_zero_moon_pregnant(cat: Cat, other_cat: Optional[Cat] = None):
     """Handles if the cat is zero moons pregnant."""
     if other_cat and (
-        not other_cat.status.alive_in_player_clan or other_cat.birth_cooldown
+        other_cat.dead or not other_cat.status.is_clancat or other_cat.birth_cooldown
     ):
         return
 
@@ -183,7 +183,7 @@ def _create_pregnancy_announcement(
         text,
         main_cat=pregnant_cat,
         random_cat=random_cat,
-        clan=game.clan,
+        clan=pregnant_cat.status.fetch_clan_object(game.clan),
     )
     involved_cats = [pregnant_cat.ID]
     involved_cats = _append_second_parent_if_mentioned(

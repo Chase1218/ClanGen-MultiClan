@@ -151,10 +151,10 @@ def check_and_promote_deputy(clan=None):
 
     if (
         clan.deputy
-        and clan.deputy.status.alive_in_player_clan
+        and not clan.deputy.dead
+        and clan.deputy.status.group_ID == clan.group_ID
         and clan.deputy.status.rank != CatRank.ELDER
     ):
-        # don't need a new deputy
         return
 
     if not get_clan_setting("deputy"):

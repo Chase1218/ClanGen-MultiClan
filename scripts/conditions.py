@@ -73,7 +73,7 @@ def medicine_cats_can_cover_clan(all_cats, amount_per_med, clan=None) -> bool:
 def get_amount_cat_for_one_medic(clan):
     """Returns the amount of cats one medicine cat can treat"""
     medcat_capacity = int(get_config("medcats.medcat_base_capacity"))  # default 10
-    if clan and clan.game_mode == "classic":
+    if game.clan and game.clan.game_mode == "classic":
         # just hope nobody has clans with more than 1,000,000 cats in classic
         medcat_capacity = 1000000
     return medcat_capacity

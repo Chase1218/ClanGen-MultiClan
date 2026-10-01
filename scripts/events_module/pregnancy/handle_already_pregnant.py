@@ -73,7 +73,12 @@ def handle_one_moon_pregnant(cat: Cat):
     except KeyError:
         print("Is this an old save? Cat does not have the pregnant condition")
 
-    text = event_text_adjust(Cat, text, main_cat=cat, clan=game.clan)
+    text = event_text_adjust(
+        Cat, 
+        text, 
+        main_cat=cat, 
+        clan=cat.status.fetch_clan_object(game.clan),
+        )
     game.cur_events_list.append(
         EventInformation(
             text, 
@@ -173,7 +178,7 @@ def handle_two_moon_pregnant(cat: Cat):
             extra_text,
             main_cat=cat,
             random_cat=cheated_mate,
-            clan=game.clan,
+            clan=cat.status.fetch_clan_object(game.clan),
         )
         event_list.append(extra_text)
 
@@ -238,12 +243,13 @@ def handle_two_moon_pregnant(cat: Cat):
 
         if cat.status.is_outsider:
             possible_events = events["birth"]["outside_death"]
-        if game.clan.leader_lives > 1 and cat.status.is_leader:
+        clan = cat.status.fetch_clan_object(game.clan)
+        if clan.leader_lives > 1 and cat.status.is_leader:
             possible_events = events["birth"]["lead_death"]
         event_list.append(choice(possible_events))
 
         if cat.status.is_leader:
-            game.clan.leader_lives -= 1
+            clan.leader_lives -= 1
             cat.die()
             death_event = i18n.t("conditions.pregnancy.leader_kitting_death")
             if extra_result := check_stolen_vitality(cat, 1):
@@ -287,7 +293,11 @@ def handle_two_moon_pregnant(cat: Cat):
     involved_cats = _remove_unmentioned_mate_ids(involved_cats, print_event, cat_dict)
 
     print_event = event_text_adjust(
-        Cat, print_event, main_cat=cat, random_cat=other_cat, clan=game.clan
+        Cat, 
+        print_event, 
+        main_cat=cat, 
+        random_cat=other_cat, 
+        clan=cat.status.fetch_clan_object(game.clan),
     )
     extra_cat_dict = {}
     if "mc_mate" in cat_dict:
@@ -415,7 +425,11 @@ def _handle_main_birth_event(
         event_list.append(adding_text)
 
     # TWO PARENTS
-    elif other_cat.ID in cat.mate and other_cat.status.alive_in_player_clan:
+    elif (
+        other_cat.ID in cat.mate
+        and other_cat.status.group_ID == cat.status.group_ID
+        and not other_cat.dead
+    ):
         involved_cats.append(other_cat.ID)
         cat_dict["r_c"] = other_cat
         event_list.append(choice(events["birth"]["two_parents"]))
@@ -673,7 +687,7 @@ def _handle_affair_discovery_breakup(cheating_cat: Cat, mate_cat: Cat):
             breakup_text,
             main_cat=mate_cat,
             random_cat=cheating_cat,
-            clan=game.clan,
+            clan=mate_cat.status.fetch_clan_object(game.clan),
         )
         game.cur_events_list.append(
             EventInformation(

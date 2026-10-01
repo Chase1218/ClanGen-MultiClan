@@ -603,19 +603,22 @@ class ShortEvent:
                 self.types.append("birth_death")
 
             if cat.status.is_leader:
+                clan = cat.status.fetch_clan_object(game.clan)
+                self.leads_current_life_count = int(clan.leader_lives)
+
                 lives_lost = 0
                 if "all_lives" in self.tags:
-                    lives_lost = game.clan.leader_lives
-                    game.clan.leader_lives -= lives_lost
+                    lives_lost = clan.leader_lives
+                    clan.leader_lives -= lives_lost
                 elif "some_lives" in self.tags:
                     lives_lost = randrange(2, self.leads_current_life_count - 1)
-                    game.clan.leader_lives -= lives_lost
+                    clan.leader_lives -= lives_lost
                 else:
                     lives_lost = 1
-                    game.clan.leader_lives -= 1
+                    clan.leader_lives -= 1
 
-                cat.die(body)
-                self.additional_event_text = get_leader_life_notice(cat.name)
+                cat.die(body, clan=clan)
+                self.additional_event_text = get_leader_life_notice(cat.name, clan=clan)
                 if extra_text := check_stolen_vitality(cat, lives_lost):
                     self.additional_event_text += " " + extra_text
 
