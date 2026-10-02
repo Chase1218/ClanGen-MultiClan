@@ -28,6 +28,7 @@ from scripts.cat.factories.typed_dicts import (
     MentorshipDict,
     CatTogglesDict,
     InheritanceDict,
+    HeritageDict,
     AfterlifeAffinityDict,
     GenderDict,
 )
@@ -137,6 +138,7 @@ class Cat:
         personality: Personality,
         mentorship: MentorshipDict,
         inheritance: InheritanceDict,
+        heritage: HeritageDict,
         affinity: AfterlifeAffinityDict,
         toggles: CatTogglesDict,
         experience: int,
@@ -160,6 +162,7 @@ class Cat:
         :param personality: Personality object
         :param mentorship: MentorshipDict containing mentor data and apprentice data, including former for both
         :param inheritance: Inheritance object
+        :param heritage: HeritageDict containing information about the cat's known heritage
         :param affinity: AffinityDict containing starclan & dark forest affinity values
         :param toggles: Dict of cat-related behavior toggles
         :param experience: Cat's experience value
@@ -216,6 +219,10 @@ class Cat:
         self.mate = inheritance["mate"]
         self.previous_mates = inheritance["previous_mates"]
         self.inheritance = None
+
+        # heritage
+        self.parent1_known = heritage["parent1_known"]
+        self.parent2_known = heritage["parent2_known"]
 
         # afterlife affinity
         self.dark_forest_affinity = affinity["dark_forest"]
@@ -2463,6 +2470,8 @@ class Cat:
                 "facets": self.personality.get_facet_string(),
                 "parent1": self.parent1,
                 "parent2": self.parent2,
+                "parent1_known": self.parent1_known,
+                "parent2_known": self.parent2_known,
                 "adoptive_parents": self.adoptive_parents,
                 "mentor": self.mentor or None,
                 "former_mentor": (

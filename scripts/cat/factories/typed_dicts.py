@@ -30,6 +30,9 @@ class InheritanceDict(TypedDict):
     mate: List[str]
     previous_mates: List[str]
 
+class HeritageDict(TypedDict):
+    parent1_known: bool
+    parent2_known: bool
 
 class MentorshipDict(TypedDict):
     mentor: Optional[str]

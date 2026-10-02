@@ -11,6 +11,7 @@ from scripts.cat.factories.typed_dicts import (
     MentorshipDict,
     CatTogglesDict,
     InheritanceDict,
+    HeritageDict,
     AfterlifeAffinityDict,
 )
 from scripts.cat.names import Name
@@ -98,6 +99,10 @@ class NewCatFactory(BaseCatFactory, ABC):
                 faded_offspring=[],
                 mate=mate,
                 previous_mates=[],
+            ),
+            "heritage": HeritageDict(
+                parent1_known=overrides.get("parent1_known", True),
+                parent2_known=overrides.get("parent2_known", True),
             ),
             "affinity": AfterlifeAffinityDict(starclan=0, dark_forest=0),
             "toggles": CatTogglesDict(

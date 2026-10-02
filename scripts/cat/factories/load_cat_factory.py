@@ -11,6 +11,7 @@ from scripts.cat.factories.typed_dicts import (
     CatTogglesDict,
     GenderDict,
     InheritanceDict,
+    HeritageDict,
     AfterlifeAffinityDict,
 )
 from scripts.cat.history import History
@@ -57,6 +58,11 @@ class LoadCatFactory(BaseCatFactory):
             faded_offspring=kwargs.get("faded_offspring", []),
             mate=mate if isinstance(mate, list) else [mate],
             previous_mates=kwargs.get("previous_mates", []),
+        )
+
+        heritage = HeritageDict(
+            parent1_known=kwargs.get("parent1_known", True),
+            parent2_known=kwargs.get("parent2_known", True),
         )
 
         mentorship = MentorshipDict(
@@ -116,6 +122,7 @@ class LoadCatFactory(BaseCatFactory):
             ),
             "mentorship": mentorship,
             "inheritance": inheritance,
+            "heritage": heritage,
             "affinity": affinity,
             "toggles": toggles,
             "experience": kwargs.get("experience"),

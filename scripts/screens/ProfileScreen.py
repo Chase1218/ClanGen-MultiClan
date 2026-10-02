@@ -831,13 +831,30 @@ class ProfileScreen(Screens):
             # NEWLINE ----------
 
         # PARENTS
-        all_parents = [Cat.fetch_cat(i) for i in the_cat.get_parents()]
-        if all_parents:
+        display_parents = []
+        if the_cat.parent1:
+            if the_cat.parent1_known:
+                display_parents.append(str(Cat.fetch_cat(the_cat.parent1).name))
+            else:
+                display_parents.append("Unknown")
+
+        if the_cat.parent2:
+            if the_cat.parent2_known:
+                display_parents.append(str(Cat.fetch_cat(the_cat.parent2).name))
+            else:
+                display_parents.append("Unknown")
+
+        for adoptive_parent in the_cat.adoptive_parents:
+            if adoptive_parent not in [the_cat.parent1, the_cat.parent2]:
+                display_parents.append(str(Cat.fetch_cat(adoptive_parent).name))
+            
+        
+        if display_parents:
             output += "\n"
             output += i18n.t(
                 "screens.profile.parent_label",
-                count=len(all_parents),
-                parents=adjust_list_text([str(cat.name) for cat in all_parents]),
+                count=len(display_parents),
+                parents=adjust_list_text(display_parents),
             )
 
         # MATE
