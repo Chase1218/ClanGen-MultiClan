@@ -59,7 +59,7 @@ def handle_having_kits(cat: Cat):
 
     # DETERMINE THE SECOND PARENT
     # check if there is a cat in the clan for the second parent
-    second_parent, is_affair = get_second_parent(cat)
+    second_parent, is_affair, parent_known = get_second_parent(cat)
 
     if not second_parent and not get_clan_setting("single parentage"):
         return
@@ -76,4 +76,4 @@ def handle_having_kits(cat: Cat):
         if kits_are_adopted:
             handle_adoption(cat, second_parent)
         else:
-            handle_zero_moon_pregnant(cat, second_parent)
+            handle_zero_moon_pregnant(cat, second_parent, parent_known)

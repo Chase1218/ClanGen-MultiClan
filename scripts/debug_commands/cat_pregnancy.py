@@ -152,13 +152,9 @@ class ViewPregnancyCommand(Command):
 
         second_parent_cat = (
             get_cat_from_name_or_id(game.clan.pregnancy_data[cat.ID]["second_parent"])
-            if game.clan.pregnancy_data[cat.ID]["second_parent"]
-            else None
         )
         second_parent_repr = (
             f"{second_parent_cat.name} ({second_parent_cat.ID})"
-            if second_parent_cat
-            else "None"
         )
         if "pregnant" in cat.injuries:
             add_multiple_lines_to_log(

@@ -15,10 +15,10 @@ from scripts.events_module.text_adjust import event_text_adjust
 from scripts.game_structure import game
 
 
-def handle_zero_moon_pregnant(cat: Cat, other_cat: Optional[Cat] = None):
+def handle_zero_moon_pregnant(cat: Cat, other_cat: Optional[Cat] = None, parent_known: Optional[bool] = None):
     """Handles if the cat is zero moons pregnant."""
     if other_cat and (
-        other_cat.dead or not other_cat.status.is_clancat or other_cat.birth_cooldown
+        other_cat.dead or other_cat.birth_cooldown
     ):
         return
 
@@ -38,8 +38,8 @@ def handle_zero_moon_pregnant(cat: Cat, other_cat: Optional[Cat] = None):
         # therefore the main cat will be used, regarding of gender
         pregnant_cat = cat
         second_parent = other_cat
-        _create_pregnancy_data(pregnant_cat, second_parent)
-        _handle_pregnancy_notice(pregnant_cat, second_parent)
+        _create_pregnancy_data(pregnant_cat, second_parent, parent_known)
+        _handle_pregnancy_notice(pregnant_cat, second_parent, parent_known)
         return
 
     # but only afab cats can get pregnant here, so we treat each sex differently
@@ -56,11 +56,17 @@ def handle_zero_moon_pregnant(cat: Cat, other_cat: Optional[Cat] = None):
         pregnant_cat = cat
         second_parent = other_cat
 
-    _create_pregnancy_data(pregnant_cat, second_parent)
-    _handle_pregnancy_notice(pregnant_cat, second_parent)
+    if second_parent is None:
+        second_parent = get_biological_parent(pregnant_cat)
+
+    if parent_known is None:
+        parent_known = False
+    
+    _create_pregnancy_data(pregnant_cat, second_parent, parent_known)
+    _handle_pregnancy_notice(pregnant_cat, second_parent, parent_known)
 
 
-def _handle_pregnancy_notice(pregnant_cat, second_parent):
+def _handle_pregnancy_notice(pregnant_cat, second_parent, parent_known):
     allow_affair = get_clan_setting("affair")
     allow_coparenting = get_clan_setting("unmated parentage")
 
@@ -135,10 +141,11 @@ def _handle_pregnancy_notice(pregnant_cat, second_parent):
         )
 
 
-def _create_pregnancy_data(pregnant_cat: Cat, second_parent: Optional[Cat]):
+def _create_pregnancy_data(pregnant_cat: Cat, second_parent: Cat, second_parent_known: bool):
     """Creates the pregnancy data entry for a new pregnancy."""
     game.clan.pregnancy_data[pregnant_cat.ID] = {
-        "second_parent": str(second_parent.ID) if second_parent else None,
+        "second_parent": str(second_parent.ID),
+        "second_parent_known": second_parent_known,
         "moons": 0,
         "amount": 0,
     }
@@ -146,13 +153,13 @@ def _create_pregnancy_data(pregnant_cat: Cat, second_parent: Optional[Cat]):
 
 def _retrieve_secret_kittens(cat):
     amount = get_amount_of_kits(cat)
-    kits = get_kits(amount, cat, None)
+    kits = get_kits(amount, cat, parent_known=False)
     print_event = i18n.t(
         "conditions.pregnancy.pregnant_secret",
         name=cat.name,
         insert=i18n.t("conditions.pregnancy.kit_amount", count=amount),
     )
-    cats_involved = [cat.ID]
+    cats_involved = [cat.ID, kits[0].parent2]
     for kit in kits:
         cats_involved.append(kit.ID)
     game.cur_events_list.append(

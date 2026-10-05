@@ -1703,6 +1703,7 @@ class Cat:
         for_love_interest: bool = False,
         age_restriction: bool = True,
         first_cousin_mates: bool = False,
+        ignore_outsider_status: bool = False,
         ignore_no_mates: bool = False,
     ):
         """
@@ -1733,7 +1734,10 @@ class Cat:
             return False
 
         # check that outside status is the same
-        if self.status.is_outsider != other_cat.status.is_outsider:
+        if (
+            not ignore_outsider_status and 
+            self.status.is_outsider != other_cat.status.is_outsider
+        ):
             return False
 
         # check for age
