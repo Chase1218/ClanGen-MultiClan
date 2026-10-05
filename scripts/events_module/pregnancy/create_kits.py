@@ -209,6 +209,7 @@ def get_kits(
                 parent2=other_cat.ID,
                 parent2_known=parent_known,
                 moons=0,
+                backstory=backstory,
                 status_dict=kitten_status,
             )
         else:

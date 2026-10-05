@@ -59,7 +59,7 @@ def check_if_can_have_kits(cat):
             and not get_clan_setting("affair")
         ):
             return False
-        return True
+    return True
 
 
 def check_second_parent(cat: Cat, second_parent: Cat) -> tuple[bool, bool]:
