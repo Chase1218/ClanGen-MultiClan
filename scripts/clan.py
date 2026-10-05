@@ -164,11 +164,6 @@ class Clan:
         self.herb_supply = HerbSupply()
         self.primary_disaster = None
         self.secondary_disaster = None
-        self.war = {
-            "at_war": False,
-            "enemy": None,
-            "duration": 0,
-        }
         self.future_events = []
         self.last_focus_change = None
         self.clans_in_focus = []

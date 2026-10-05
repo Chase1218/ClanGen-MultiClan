@@ -87,7 +87,7 @@ class TestPregnancySettings(unittest.TestCase):
         # turn affairs off
         set_clan_setting("affair", False)
         # now an affair isn't allowed
-        self.assertEqual(pregnancy_events.get_second_parent(parent1), (parent2, False))
+        self.assertEqual(pregnancy_events.get_second_parent(parent1), (parent2, False, True))
 
 
 class CanHaveKits(unittest.TestCase):

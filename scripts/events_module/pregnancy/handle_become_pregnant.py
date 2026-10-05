@@ -10,6 +10,7 @@ from scripts.events_module.event_information import EventInformation
 from scripts.events_module.pregnancy.build_strings import (
     get_pregnancy_strings,
 )
+from scripts.events_module.pregnancy.check_parents import get_biological_parent
 from scripts.events_module.pregnancy.create_kits import get_amount_of_kits, get_kits
 from scripts.events_module.text_adjust import event_text_adjust
 from scripts.game_structure import game

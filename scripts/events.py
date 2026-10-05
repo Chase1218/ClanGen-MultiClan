@@ -1192,15 +1192,22 @@ def check_war():
     if game.clan.age <= 4:
         return
 
-    # check that the save dict has all the things we need
-    if "at_war" not in game.clan.war:
-        game.clan.war["at_war"] = False
-    if "enemy" not in game.clan.war:
-        game.clan.war["enemy"] = None
-    if "duration" not in game.clan.war:
-        game.clan.war["duration"] = 0
 
     # check if war in progress
+    for clan in [game.clan] + game.clan.all_other_clans:
+        enemies = game.clan.get_wars(clan)
+        if enemies:
+            enemy_id = random.choice(enemies)
+        
+        war_data = game.clan.war.get(clan.group_ID, {}).get(enemy_id)
+        if war_data is None:
+            war_data = game.clan.war.get(enemy_id, {}).get(clan.group_ID)
+
+            for possible_enemy in [game.clan] + game.clan.all_other_clans:
+                if possible_enemy.group_ID == enemy_id:
+                    other_clan = possible_enemy
+                    break
+                    
     war_events: list = []
     enemy_clan = None
     if game.clan.war["at_war"]:
@@ -1211,12 +1218,12 @@ def check_war():
                 break
 
         threshold = 10
-        if "bloodthirsty" in enemy_clan.temperament:
+        if "bloodthirsty" in other_clan.temperament:
             threshold = 12
-        if set(enemy_clan.temperament).intersection({"mellow", "amiable", "gracious"}):
+        if set(other_clan.temperament).intersection({"mellow", "amiable", "gracious"}):
             threshold = 7
 
-        threshold -= int(game.clan.war["duration"])
+        threshold -= int(war_data["duration"])
         if enemy_clan.relations < 0:
             enemy_clan.relations = 0
 

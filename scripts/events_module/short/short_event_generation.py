@@ -29,7 +29,6 @@ from scripts.events_module.event_filters import (
 from scripts.events_module.short.short_event import ShortEvent
 from scripts.game_structure import constants, game
 from scripts.game_structure.game.switches import switch_get_value, Switch
-from scripts.clan_package.cotc import get_warring_clan
 from scripts.clan_package.get_clan_cats import (
     get_living_clan_cat_count,
     find_alive_cats_with_rank,
@@ -82,9 +81,13 @@ def create_short_event(
     # if the war didn't go badly, then we decrease the chance of this event being war-focused
     if switch_get_value(Switch.war_rel_change_type) != "rel_down":
         war_chance = 2
-    if game.clan.war.get("at_war", False) and random.randint(1, war_chance) != 1:
-        enemy_clan = get_warring_clan()
-        other_clan = enemy_clan
+    enemies = game.clan.get_wars(clan)
+    if enemies and random.randint(1, war_chance) != 1:
+        enemy_id = random.choice(enemies)
+        for possible_enemy in game.clan.all_other_clans:
+            if possible_enemy.group_ID == enemy_id:
+                other_clan = possible_enemy
+                break
         sub_types.append("war")
     else:
         possible_other_clans = [

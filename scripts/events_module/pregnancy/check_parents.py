@@ -20,7 +20,7 @@ from scripts.config import get_config
 from scripts.events_module.consequences import create_new_cat
 
 
-def check_if_can_have_kits(cat):
+def check_if_can_have_kits(cat, ignore_mate_requirement=False):
     """Check if the given cat can have kits, see for age, birth-cooldown and so on."""
     if not cat:
         return False
@@ -41,24 +41,25 @@ def check_if_can_have_kits(cat):
 
     if not check_parent_rank(cat):
         return False
-
-    # check for mate
-    if cat.mate:
-        for mate_id in cat.mate:
-            if mate_id not in cat.all_cats:
-                print(
-                    f"WARNING: {cat.name}  has an invalid mate # {mate_id}. This has been unset."
-                )
-                cat.mate.remove(mate_id)
-    else:
-        # if the cat has no mate, and we don't allow single parents, unmated parents, or affairs
-        # then they can't have kits
-        if (
-            not get_clan_setting("single parentage")
-            and not get_clan_setting("unmated parentage")
-            and not get_clan_setting("affair")
-        ):
-            return False
+    
+    if not ignore_mate_requirement:
+        # check for mate
+        if cat.mate:
+            for mate_id in cat.mate:
+                if mate_id not in cat.all_cats:
+                    print(
+                        f"WARNING: {cat.name}  has an invalid mate # {mate_id}. This has been unset."
+                    )
+                    cat.mate.remove(mate_id)
+        else:
+            # if the cat has no mate, and we don't allow single parents, unmated parents, or affairs
+            # then they can't have kits
+            if (
+                not get_clan_setting("single parentage")
+                and not get_clan_setting("unmated parentage")
+                and not get_clan_setting("affair")
+            ):
+                return False
     return True
 
 
@@ -69,7 +70,7 @@ def check_second_parent(cat: Cat, second_parent: Cat) -> tuple[bool, bool]:
     parent can have kits, kits are adopted
     """
     # Checks for second parent alone:
-    if not check_if_can_have_kits(second_parent):
+    if not check_if_can_have_kits(second_parent, ignore_mate_requirement=True):
         return False, False
 
     # Check to see if the pair can have kits.
