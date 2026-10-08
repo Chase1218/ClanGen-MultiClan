@@ -376,12 +376,14 @@ class Condition_Events:
         Returns: boolean - if an event was triggered
         """
         if clan is None:
-            clan = game.clan   
+            clan = game.clan
+
+        enemies = game.clan.get_wars(clan)   
 
         triggered = False
 
         modify_for_war = (
-            game.clan.war["at_war"]
+            bool(enemies)
             and switch_get_value(Switch.war_rel_change_type) != "rel_up"
         )
         path = (

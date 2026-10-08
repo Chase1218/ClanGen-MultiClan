@@ -37,12 +37,15 @@ def trigger_interaction(
     :param is_joining: Set True if generated interaction should be "joining" instead of "normal"
     :return: True if interaction occurred, False otherwise
     """
-    # only interact between two player clan cats
-    if (
-        not main_cat.status.alive_in_player_clan
-        or not other_cat.status.alive_in_player_clan
-    ):
+    # only interact between two same clan cats
+    
+    if main_cat.status.group_ID != other_cat.status.group_ID:
+         return False
+    
+    # no interactions if both are outsiders
+    if main_cat.status.group_ID == "outsider" and other_cat.status.group_ID == "outsider":
         return False
+
     # no interacting with self
     if main_cat == other_cat:
         return False
