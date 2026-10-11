@@ -133,6 +133,20 @@
             "While on a walk in the territory with r_c, m_c unexpectedly had {PRONOUN/m_c/poss} {insert} with help from {PRONOUN/m_c/poss} mate."
 
         ],
+        "halfclan": [
+            "m_c welcomes a {insert} into the world. Though r_c cannot be there, {PRONOUN/m_c/subject} hopes their kits will one day know both sides of their family.",
+            "As m_c gazes down at {PRONOUN/m_c/poss} newborn {insert}, {PRONOUN/m_c/subject} can't help but notice how much they resemble r_c. It's a bittersweet reminder of the cat waiting across the border.",
+            "m_c ignores the whispers about {PRONOUN/m_c/poss} new {insert}. Their mixed Clan heritage may make life difficult, but {PRONOUN/m_c/subject} is determined to give them every opportunity to thrive.",
+            "As m_c curls around {PRONOUN/m_c/poss} newborn {insert}, {PRONOUN/m_c/subject} wonders if r_c is looking up at the same stars tonight.",
+            "m_c has given birth to a {insert}. Though their other parent belongs to another Clan, the nursery is filled with purrs of congratulations.",
+            "m_c watches {PRONOUN/m_c/poss} new {insert} sleep, wondering whether their kits will ever feel torn between the two Clans they come from.",
+            "With {PRONOUN/m_c/poss} newborn {insert} tucked safely against {PRONOUN/m_c/poss} belly, m_c wishes r_c could be here to share this moment. Perhaps someday, the borders between them won't seem so insurmountable.",
+            "m_c purrs proudly over {PRONOUN/m_c/poss} new {insert}. Whatever their Clanmates may think of their parentage, these kits belong in c_n as much as any other.",
+            "As m_c welcomes a {insert} into the world, {PRONOUN/m_c/subject} wonders if their kits will inherit r_c's loyalty to another Clan, or find their own path.",
+            "m_c has barely finished grooming {PRONOUN/m_c/poss} newborn {insert} before the questions begin. Will they be loyal to c_n? m_c bristles at the suggestion that their kits have anything to prove.",
+            "m_c gazes lovingly at {PRONOUN/m_c/poss} newborn {insert}, imagining the day {PRONOUN/m_c/subject} can finally introduce them to r_c.",
+            "With a new {insert} nestled against {PRONOUN/m_c/poss} belly, m_c realizes that the border separating {PRONOUN/m_c/object} from r_c now separates a family, too."
+            ],
         "dead_mate": [
             "m_c looks at {PRONOUN/m_c/poss} {insert}, choking on both a purr and a wail. How {VERB/m_c/are/is} {PRONOUN/m_c/subject} supposed to do this without r_c?",
             "m_c sobs and pushes {PRONOUN/m_c/poss} new {insert} away from {PRONOUN/m_c/object}. They look far too much like r_c for m_c to stand the sight of them.",
@@ -145,6 +159,18 @@
             "m_c wishes that r_c was here in the Clan to see their new {insert}. m_c hopes that {PRONOUN/r_c/subject} will return soon.",
 			"As m_c looks over {PRONOUN/m_c/poss} new {insert}, {PRONOUN/m_c/subject} {VERB/m_c/hope/hopes} r_c won't miss out on too much of their kithood, if {PRONOUN/r_c/subject} ever {VERB/r_c/return/returns}...",
             "m_c hoped that r_c would return to c_n before {PRONOUN/m_c/subject} gave birth to their {insert}, but sadly that didn't happen..."
+        ],
+        "outsider_parent": [
+            "m_c welcomes a {insert} into the world, wondering if r_c will ever meet them.",
+            "As m_c curls around {PRONOUN/m_c/poss} newborn {insert}, {PRONOUN/m_c/subject} can't help but notice how much they resemble r_c.",
+            "m_c has given birth to a {insert}. Somewhere beyond the Clan's borders, r_c remains unaware that {PRONOUN/r_c/poss} kits have been born.",
+            "Although r_c cannot be there to welcome their new {insert}, m_c hopes they'll have the chance to meet someday.",
+            "m_c watches {PRONOUN/m_c/poss} newborn {insert} squirm against {PRONOUN/m_c/poss} belly. Whatever r_c's feelings about parenthood, these kits will always have a home in c_n.",
+            "m_c gives birth to a healthy {insert}. {PRONOUN/m_c/subject/CAP} wonders what kind of life their kits might have had beyond the Clan's borders.",
+            "With {PRONOUN/m_c/poss} newborn {insert} tucked safely against {PRONOUN/m_c/poss} belly, m_c wonders whether r_c would ever consider joining c_n.",
+            "m_c purrs softly over {PRONOUN/m_c/poss} new {insert}, remembering the days {PRONOUN/m_c/subject} spent with r_c beyond the borders.",
+            "m_c wonders if r_c will ever meet their new {insert}. {PRONOUN/m_c/subject/CAP} hopes that someday, somehow, they'll be able to introduce them.",
+            "m_c ignores the whispers and questions about their new {insert}. {PRONOUN/m_c/subject/CAP} knows they resemble r_c, and that their life may be difficult due to their outsider blood, but {PRONOUN/m_c/subject} will be their biggest supporter for life."
         ],
         "both_unmated_pos": [
             "m_c gave birth to a {insert} with r_c and is looking forward to co-parenting.",

@@ -909,7 +909,8 @@ class Cat:
         load_leader_ceremonies()
 
         # determine which dict we're pulling from
-        if game.clan.instructor.status.group == CatGroup.DARK_FOREST:
+        guide = getattr(clan, "instructor", None)
+        if guide and guide.status.group == CatGroup.DARK_FOREST:
             starclan = False
             ceremony_dict: Dict = LEAD_CEREMONY_DF
         else:
@@ -957,6 +958,8 @@ class Cat:
         for rel in relationships:
             kitty = self.fetch_cat(rel.cat_to)
             if kitty and kitty.dead and kitty.status.rank != CatRank.NEWBORN:
+                if kitty.status.get_last_living_group () != clan.group_ID:
+                    continue
                 # check where they reside
                 if starclan:
                     if kitty.status.group != CatGroup.STARCLAN:
@@ -965,7 +968,7 @@ class Cat:
                     if kitty.status.group != CatGroup.DARK_FOREST:
                         continue
                 # guides aren't allowed here
-                if kitty == game.clan.instructor:
+                if guide and kitty == guide:
                     continue
                 else:
                     dead_relations.append(rel)
@@ -992,7 +995,11 @@ class Cat:
 
         cats_in_afterlife = [
             self.fetch_cat(i)
-            for i in game.clan.clan_cats
+            for i in (
+                cat.ID for cat in Cat.all_cats_list
+                if cat.dead
+                and cat.status.get_last_living_group() == clan.group_ID
+            )
             if self.fetch_cat(i)
             and i not in life_givers
             and self.fetch_cat(i).status.group
@@ -1060,7 +1067,7 @@ class Cat:
                 if "unknown_blessing" in tags:
                     continue
 
-                if "guide" in tags and giver_cat != game.clan.instructor:
+                if "guide" in tags and giver_cat != guide:
                     continue
                 if game.clan.age != 0 and "new_clan" in tags:
                     continue

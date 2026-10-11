@@ -1186,15 +1186,16 @@ def announce_war_events(clan, other_clan, war_events):
         cat
         for cat in Cat.all_cats.values()
         if cat.status.group_ID == clan.group_ID
-        and cat.status.rank.is_any_medicine_rank()
-        and cat.available_to_work()
+        and cat.status.rank == CatRank.MEDICINE_CAT
+        and not cat.dead
+        and not cat.not_working()
     ]
 
     for event in war_events.copy():
-        if not clan.leader and "lead_name" in event:
+        if not clan.leader or clan.leader.dead and "lead_name" in event:
             war_events.remove(event)
             continue
-        if not clan.deputy and "dep_name" in event:
+        if not clan.deputy or clan.deputy.dead and "dep_name" in event:
             war_events.remove(event)
             continue
         if not available_med and "med_name" in event:
@@ -1498,7 +1499,7 @@ def invite_new_cats(cat, clan=None):
     elif clan_size < 30:
         base_chance = 300
 
-    reputation = game.clan.reputation
+    reputation = clan.reputation
     # hostile
     if 1 <= reputation <= 30:
         if clan_size < 10:
@@ -1517,6 +1518,76 @@ def invite_new_cats(cat, clan=None):
     # welcoming
     elif 71 <= reputation <= 100:
         chance = base_chance - reputation
+    #TEMPERAMENT BASED RECRUITMENT
+    #This is for how likely a clan is to recruit based on their temperament
+    temperament_modifiers = {
+        # FIRST TEMPERAMENT — Sociability
+        "cunning": 1.15,
+        "proud": 1.20,
+        "bloodthirsty": 1.30,
+        "amiable": 0.80,
+        "stoic": 1.10,
+        "wary": 1.25,
+        "gracious": 0.75,
+        "mellow": 0.90,
+        "logical": 1.00,
+
+        # SECOND TEMPERAMENT — Lawfulness
+        "chaotic": 0.95,
+        "mercurial": 1.05,
+        "calculating": 1.15,
+        "eager": 0.85,
+        "observant": 1.05,
+        "adaptable": 0.80,
+        "decisive": 1.00,
+        "methodical": 1.05,
+        "steadfast": 1.10,
+    }
+
+    for trait in clan.temperament:
+        chance *= temperament_modifiers.get(trait, 1.0)
+
+    chance = int(chance)
+
+    #LEADER PERSONALITY RECRUITMENT
+    #This is how likely a clan will be to recruit outsiders based on the leader's personality
+
+    if clan.leader and not clan.leader.dead:
+        personality = clan.leader.personality
+
+        # Higher sociability encourages recruitment
+        social_modifier = (personality.sociability - 8) / 8
+
+        # Higher lawfulness makes leaders more cautious of recruitment
+        lawful_modifier = (personality.lawfulness - 8) / 8
+
+        leader_modifier = (
+            1.0
+            - (social_modifier * 0.10)
+            + (lawful_modifier * 0.10)
+        )
+
+        chance = int(chance * leader_modifier)
+
+    # POPULATION-BASED RECRUITMENT
+    # Smaller clans make more recruitment attempts
+    if clan is not game.clan:
+        player_clan_size = len([
+            c for c in Cat.all_cats.values()
+            if c.status.group_ID == game.clan.group_ID
+            and not c.dead
+            and c.status.is_clancat
+        ])
+
+        if player_clan_size > 0:
+            population_ratio = clan_size / player_clan_size
+
+            if population_ratio < 0.25:
+                chance = int(chance * 0.35)
+            elif population_ratio < 0.50:
+                chance = int(chance * 0.55)
+            elif population_ratio < 0.75:
+                chance = int(chance * 0.80)
 
     chance = max(chance, 1)
 

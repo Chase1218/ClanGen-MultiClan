@@ -1378,7 +1378,14 @@ class ProfileScreen(Screens):
                 for clan in game.clan.all_other_clans
                 if clan.group_ID == self.the_cat.status.get_last_living_group()
             ]
-            bs_blurb = i18n.t("cat.backstories.other_clan_cat", clan=clan[0])
+            clan_description = i18n.t(
+                "cat.backstories.other_clan_cat", clan=clan[0]
+            )
+            bs_blurb = (
+                f"{bs_blurb} {clan_description}"
+                if bs_blurb
+                else clan_description
+            )
         if bs_blurb is not None:
             adjust_text = str(bs_blurb).replace("This cat", str(self.the_cat.name))
             if self.the_cat.dead:

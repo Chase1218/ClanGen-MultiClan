@@ -76,7 +76,8 @@ def _handle_moving_on(cat: Cat, disable_random: bool = False):
 
         # check if the mate has been gone for at least 4 moons
         dead_or_gone = (
-            not mate.status.alive_in_player_clan and mate.status.moons_as >= 4
+            (mate.dead or not mate.status.is_clancat)
+            and mate.status.moons_as >= 4
         )
 
         # if cat is not grief stricken, then we try to move on

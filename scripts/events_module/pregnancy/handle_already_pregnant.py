@@ -416,6 +416,18 @@ def _handle_main_birth_event(
     if other_cat and not second_parent_known:
         event_list.append(choice(events["birth"]["unmated_parent"]))
 
+    # OTHER CLAN PARENT
+    elif (
+        other_cat
+        and not other_cat.dead
+        and not cat.status.is_outsider
+        and not other_cat.status.is_outsider
+        and other_cat.status.group_ID != cat.status.group_ID
+    ):
+        involved_cats.append(other_cat.ID)
+        cat_dict["r_c"] = other_cat
+        event_list.append(choice(events["birth"]["halfclan"]))
+
     # SINGLE PARENT
     elif not cat.status.is_outsider and other_cat is None:
         event_list.append(choice(events["birth"]["unmated_parent"]))
@@ -428,6 +440,12 @@ def _handle_main_birth_event(
         if other_cat and not other_cat.status.is_outsider:
             adding_text = choice(events["birth"]["outside_in_clan"])
         event_list.append(adding_text)
+
+    # OUTSIDER PARENT
+    elif other_cat and other_cat.status.is_outsider:
+        involved_cats.append(other_cat.ID)
+        cat_dict["r_c"] = other_cat
+        event_list.append(choice(events["birth"]["outsider_parent"]))
 
     # TWO PARENTS
     elif (

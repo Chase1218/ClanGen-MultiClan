@@ -74,7 +74,11 @@ def check_for_ceremony(main_cat: Cat, clan=None):
     # PROMOTE DEPUTY TO LEADER
     if main_cat.status.rank == CatRank.DEPUTY:
         # If a Clan deputy exists, and the leader is dead, outside, or doesn't exist, make the deputy leader.
-        if not clan.leader or not clan.leader.status.alive_in_player_clan != clan.group_ID:
+        if (
+            not clan.leader
+            or clan.leader.dead
+            or clan.leader.status.group_ID != clan.group_ID
+        ):
             _handle_leader_ceremony(main_cat, clan)
             return
 
@@ -137,10 +141,42 @@ def check_for_ceremony(main_cat: Cat, clan=None):
                 trigger_ceremony(main_cat, CatRank.MEDIATOR)
 
 
-def get_leaders_kits():
-    leaders_kits = game.clan.leader.get_children()
-    return leaders_kits
+def get_leaders_kits(clan=None):
+    if clan is None:
+        clan=game.clan
+    if not clan.leader:
+        return []
 
+    return clan.leader.get_children
+
+def rel_deputy_filter(cat_list, leader):
+    """Prioritize deputy candidates with strong leader relationships."""
+
+    candidates = [
+        cat for cat in cat_list
+        if cat.ID in leader.relationships
+    ]
+
+    if not candidates:
+        return cat_list
+
+    def relationship_score(cat):
+        rel = leader.relationships[cat.ID]
+        return (
+            rel.respect * 3
+            + rel.trust * 2
+            + rel.like
+            + rel.comfort
+        )
+
+    candidates.sort(key=relationship_score, reverse=True)
+
+    candidates = [
+        cat for cat in candidates[:5]
+        if relationship_score(cat) >= 0
+    ]
+
+    return candidates if candidates else cat_list
 
 def check_and_promote_deputy(clan=None):
     """
@@ -157,13 +193,13 @@ def check_and_promote_deputy(clan=None):
     ):
         return
 
-    if not get_clan_setting("deputy"):
+    if clan is game.clan and not get_clan_setting("deputy"):
         # player doesn't want us to pick a dep for them
         game.cur_events_list.insert(
             0, 
             EventInformation(
                 "defaults.warn_no_deputy",
-                clan=game.clan.group_ID,
+                clan=clan.group_ID,
                 )
             )
         return
@@ -180,12 +216,17 @@ def check_and_promote_deputy(clan=None):
 
     if (
         get_config("ranks.only_leader_kits_deputy")
-        and game.clan.leader is not None
+        and clan.leader is not None
     ):
-        possible_deputies = [c for c in possible_deputies if c.ID in get_leaders_kits()]
+        possible_deputies = [c for c in possible_deputies if c.ID in get_leaders_kits(clan)]
 
     if possible_deputies:
-        # from here we must have appropriate deputy choices
+         # Prioritize cats with strong relationships with this Clan's leader.
+        if clan.leader and not clan.leader.dead:
+            possible_deputies = rel_deputy_filter(
+                possible_deputies, clan.leader
+            )
+
         main_cat = random.choice(possible_deputies)
     else:
         # If there are no possible deputies, choose someone else, with special text.
@@ -199,11 +240,15 @@ def check_and_promote_deputy(clan=None):
 
         if (
             get_config("ranks.only_leader_kits_deputy")
-            and game.clan.leader is not None
+            and clan.leader is not None
         ):
             # If none of the leader's kits meet all the requirements for deputy, choose one randomly, with special text.
-            all_warriors = [c for c in all_warriors if c.ID in get_leaders_kits()]
+            all_warriors = [c for c in all_warriors if c.ID in get_leaders_kits(clan)]
         if all_warriors:
+            if clan.leader and not clan.leader.dead:
+                all_warriors = rel_deputy_filter(
+                    all_warriors, clan.leader
+                )
             main_cat = random.choice(all_warriors)
         else:
             # If there are no warriors at all, no one is named deputy.
@@ -211,7 +256,7 @@ def check_and_promote_deputy(clan=None):
                 EventInformation(
                     i18n.t("hardcoded.ceremony_deputy_none"), 
                     "ceremony",
-                    clan=game.clan.group_ID,
+                    clan=clan.group_ID,
                     )
             )
             return

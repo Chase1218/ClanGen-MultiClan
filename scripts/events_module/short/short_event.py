@@ -347,7 +347,7 @@ class ShortEvent:
 
         # change other_clan rep
         if self.other_clan:
-            change_clan_relations(other_clan, self.other_clan["changed"])
+            change_clan_relations(clan, other_clan, self.other_clan["changed"])
             if "other_clans" not in self.types:
                 self.types.append("other_clans")
 

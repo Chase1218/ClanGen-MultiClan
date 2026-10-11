@@ -934,6 +934,7 @@ class Clan:
                         deputy=other_clan.get("deputy"),
                         medicine_cat=other_clan.get("medicine_cat"),
                         ID=ID,
+                        reputation=other_clan.get("reputation"),
                     )
                 )
         else:
@@ -1475,6 +1476,7 @@ class OtherClan:
         deputy=None,
         medicine_cat=None,
         ID: int = 0,
+        reputation=None,
     ):
         self.group_ID = ID
         self.clancount = clancount
@@ -1536,6 +1538,18 @@ class OtherClan:
         self.deputy = Cat.all_cats.get(deputy)
         self.medicine_cat = Cat.all_cats.get(medicine_cat)
 
+        self.reputation = (
+            reputation
+            if reputation is not None
+            else get_config("outsiders.starting_reputation")
+        )
+
+    def reset_leader_lives(self):
+        self.leader_lives = randint(
+        get_config("death_related.min_leader_lives"),
+        get_config("death_related.max_leader_lives"),
+        )
+
     def __repr__(self):
         # has indicators that this is unlocalized, just in case
         return f"!!{self.name}Clan!!"
@@ -1574,7 +1588,8 @@ class OtherClan:
             "leader": self.leader.ID if self.leader else None,
             "leader_lives": self.leader_lives,
             "deputy": self.deputy.ID if self.deputy else None,
-            "medicine_cat": self.medicine_cat.ID if self.medicine_cat else None
+            "medicine_cat": self.medicine_cat.ID if self.medicine_cat else None,
+            "reputation": self.reputation,
         }
 
     def get_standing(self) -> Literal["ally", "neutral", "hostile"]:

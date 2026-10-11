@@ -69,19 +69,41 @@ def get_kits(
         parent_known = False
 
     ##### SELECT BACKSTORY #####
+    parent1_clan = None
+    parent2_clan = None
+
+    if cat:
+        parent1_clan = (
+            cat.status.get_last_living_group()
+            if cat.dead
+            else cat.status.group_ID
+        )
+
+    if other_cat:
+        parent2_clan = (
+            other_cat.status.get_last_living_group()
+            if other_cat.dead
+            else other_cat.status.group_ID
+        )
+
+    different_clans = (
+        parent1_clan is not None
+        and parent2_clan is not None
+        and parent1_clan != parent2_clan
+    )
     if (
         cat 
         and "pregnant" in cat.injuries
         and cat.status.is_clancat
         and other_cat.status.is_clancat
-        and cat.status.group_ID != other_cat.status.group_ID
+        and different_clans
     ):
         backstory = "halfclan1"
     elif (
         cat
         and cat.status.is_clancat
         and other_cat.status.is_clancat
-        and cat.status.group_ID != other_cat.status.group_ID
+        and different_clans
     ):
         backstory = "halfclan2"
     elif ( 
@@ -97,6 +119,15 @@ def get_kits(
         and other_cat.status.is_outsider
     ):
         backstory = "outsider_roots2"
+    elif (
+        cat
+        and other_cat
+        and cat.status.is_clancat
+        and other_cat.status.is_clancat
+        and parent1_clan is not None
+        and parent1_clan == parent2_clan
+    ):
+        backstory = "clanborn"
     else:  # cat is adopted
         backstory = choice(["abandoned1", "abandoned2", "abandoned3", "abandoned4"])
     ###########################
@@ -582,20 +613,39 @@ def get_balanced_kit_chance(first_parent: Cat, second_parent: Cat, is_affair) ->
 
     # CURRENT CAT AMOUNT
     # - increase the inverse chance if the clan is bigger
-    clan_size = len(
-        [
-            i 
-            for i in Cat.all_cats.values() 
-            if i.status.group_ID == first_parent.status.group_ID
-            and not i.dead
-            and i.status.is_clancat
-        ]
-    )
-   
+    clan_cats = [
+        i
+        for i in Cat.all_cats.values()
+        if i.status.group_ID == first_parent.status.group_ID
+        and not i.dead
+        and i.status.is_clancat
+    ]
+
+    clan_size = len(clan_cats)
     if clan_size < 10:
         inverse_chance = int(inverse_chance * 0.5)
     elif clan_size > 30:
         inverse_chance = int(inverse_chance * (clan_size / 30))
+
+    # POPULATION EQUALIZER
+    # Help OtherClans recover when smaller than the player Clan.
+    if first_parent.status.group_ID != game.clan.group_ID:
+        main_clan_size = len([
+            c for c in Cat.all_cats.values()
+            if c.status.group_ID == game.clan.group_ID
+            and not c.dead
+            and c.status.is_clancat
+        ])
+
+        if main_clan_size > 0:
+            ratio = clan_size / main_clan_size
+
+            if ratio < 0.33:
+                inverse_chance = max(1, int(inverse_chance * 0.35))
+            elif ratio < 0.5:
+                inverse_chance = max(1, int(inverse_chance * 0.5))
+            elif ratio < 0.75:
+                inverse_chance = max(1, int(inverse_chance * 0.75))
 
     # COMPATIBILITY
     # - decrease / increase depending on the compatibility
@@ -657,7 +707,11 @@ def get_balanced_kit_chance(first_parent: Cat, second_parent: Cat, is_affair) ->
 
     # AGE
     # - decrease the inverse chance if the whole clan is really old
-    avg_age = int(sum((cat.moons for cat in Cat.all_cats.values())) / clan_size)
+    avg_age = (
+        int(sum(cat.moons for cat in clan_cats) / clan_size)
+        if clan_size
+        else 0
+    )
     if avg_age > 80:
         inverse_chance = int(inverse_chance * 0.8)
 
