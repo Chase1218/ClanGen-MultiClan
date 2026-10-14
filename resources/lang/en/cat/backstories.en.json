@@ -13,6 +13,7 @@
         "halfclan2": "m_c was born in another Clan, but chose to come to this Clan to be with {PRONOUN/m_c/poss} other parent.",
         "outsider_roots1": "m_c was born into the Clan, but one of {PRONOUN/m_c/poss} parents is an outsider that belongs to no Clan.",
         "outsider_roots2": "m_c was born outside the Clan but came to live there with {PRONOUN/m_c/poss} parent at a young age.",
+        "outsider_roots3": "m_c was born outside the Clans but has a parent residing in a Clan.",
         "loner1": "m_c joined the Clan by choice after living life as a loner.",
         "loner2": "m_c used to live in a barn but mostly stayed away from Twolegs. {PRONOUN/m_c/subject/CAP} decided Clan life might be an interesting change of pace.",
         "loner3": "m_c wandered the world, aimless and free, but always alone.",

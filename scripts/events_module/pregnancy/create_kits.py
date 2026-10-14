@@ -121,6 +121,13 @@ def get_kits(
         backstory = "outsider_roots2"
     elif (
         cat
+        and "pregnant" in cat.injuries
+        and cat.status.is_outsider
+        and other_cat.status.is_clancat
+    ):
+        backstory = "outsider_roots3"
+    elif (
+        cat
         and other_cat
         and cat.status.is_clancat
         and other_cat.status.is_clancat
@@ -251,7 +258,9 @@ def get_kits(
                 backstory=backstory,
                 status_dict=kitten_status,
             )
-
+        # Give outsider-born kittens outsider names.
+        if kit.status.is_outsider:
+            kit.name.find_outsider_name(kit.status.social)
         kit.assign_thought()
 
         # make lost status match parent

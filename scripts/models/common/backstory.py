@@ -16,6 +16,8 @@ class Backstory(Enum):
     not_outsider_roots1 = "-outsider_roots1"
     outsider_roots2 = "outsider_roots2"
     not_outsider_roots2 = "-outsider_roots2"
+    outsider_roots3 = "outsider_roots3"
+    not_outsider_roots3 = "-outsider_roots3"
     half_clan_backstories = "half_clan_backstories"
     not_half_clan_backstories = "-half_clan_backstories"
     halfclan1 = "halfclan1"

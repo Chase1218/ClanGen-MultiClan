@@ -137,7 +137,11 @@ def _handle_pregnancy_notice(pregnant_cat, second_parent, parent_known):
             text, 
             ["birth_death"], 
             involved_cats,
-            clan=pregnant_cat.status.group_ID
+            clan=(
+                pregnant_cat.status.group_ID
+                if pregnant_cat.status.is_clancat
+                else game.clan.group_ID
+            )
             )
         )
 

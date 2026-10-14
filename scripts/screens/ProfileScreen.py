@@ -1339,6 +1339,13 @@ class ProfileScreen(Screens):
         cat_dict = {"m_c": (str(self.the_cat.name), choice(self.the_cat.pronouns))}
         if self.the_cat.history.afterlife_acceptance:
             text = i18n.t(f"cat.afterlife.{self.the_cat.history.afterlife_acceptance}")
+            # Find the Clan this cat belonged to before death.
+            clan_id = self.the_cat.status.get_last_living_group()
+
+            for clan in [game.clan, *game.clan.all_other_clans]:
+                if clan.group_ID == clan_id:
+                    text = text.replace("c_n", clan.name)
+                    break
             adjusted_text = process_text(text, cat_dict=cat_dict)
             return adjusted_text
         return None
@@ -1364,6 +1371,7 @@ class ProfileScreen(Screens):
             self.the_cat.status.is_outsider
             and not self.the_cat.status.is_lost()
             and not self.the_cat.status.is_exiled()
+            and self.the_cat.backstory != "outsider_roots3"
         ):
             bs_blurb = i18n.t(
                 "cat.backstories.cats_outside_the_clan",

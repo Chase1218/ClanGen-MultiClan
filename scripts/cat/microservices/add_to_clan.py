@@ -25,21 +25,23 @@ def add_dependents_to_clan(cat: "Cat") -> List[str]:
     :return ids: list of IDs of additional dependents that are coming with this one
     """
     # check if there are kits under 12 moons with this cat and also add them to the clan
+    # kits under 12 moons should join the same clan as their parent
+    group_ID = cat.status.group_ID
     children = cat.get_children()
     ids = []
     for child_id in children:
         child = Cat.all_cats[child_id]
         if (
             not child.dead
-            and not child.status.is_exiled(CatGroup.PLAYER_CLAN_ID)
+            and not child.status.is_exiled(group_ID)
             and child.moons < 12
-            and not child.status.alive_in_player_clan
+            and child.status.is_outsider
         ):
             child.history.add_beginning()
             child.status.add_to_group(
-                new_group_ID=CatGroup.PLAYER_CLAN_ID, age=child.age
+                new_group_ID=group_ID, age=child.age
             )
-            if game.clan:
+            if game.clan and group_ID == game.clan.group_ID:
                 game.clan.add_cat(child)
             ids.append(child_id)
 

@@ -418,6 +418,14 @@ class Clan:
                     )
                     self.add_cat(new_cat)
 
+                # Assign mentors after all founding cats have been created.
+                for founder in Cat.all_cats.values():
+                    if (
+                        founder.status.group_ID == other_clan.group_ID
+                        and founder.status.rank.is_any_apprentice_rank()
+                    ):
+                        founder.assign_random_mentor()
+
             save_cats(game.clan.save_id, Cat, game)
 
         # remove any already loaded points of interest
@@ -1574,6 +1582,36 @@ class OtherClan:
     @relations.setter
     def relations(self, value):
         self._relations = min(value, get_config("reputation.other_clans.relation_cap"))
+    
+    def new_medicine_cat(self, medicine_cat):
+        """
+        Registers a medicine cat belonging to this Clan
+        """
+        if not medicine_cat:
+            return
+
+        if medicine_cat.status.group_ID != self.group_ID:
+            return
+
+        if (
+            self.medicine_cat is None
+            or self.medicine_cat.dead
+            or self.medicine_cat.status.rank != CatRank.MEDICINE_CAT
+        ):
+            self.medicine_cat = medicine_cat
+
+    def remove_med_cat(self, medicine_cat):
+        """
+        Removes a medicine cat from this Clan's records.
+        """
+        if not medicine_cat:
+            return
+
+        if (
+            self.medicine_cat
+            and self.medicine_cat.ID == medicine_cat.ID
+        ):
+            self.medicine_cat = None
 
     def save_info(self):
         """

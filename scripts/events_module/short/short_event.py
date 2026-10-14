@@ -248,7 +248,7 @@ class ShortEvent:
         if "mass_death" in self.sub_type:
             if game.clan and not get_clan_setting("disasters"):
                 return
-            self.handle_mass_death()
+            self.handle_mass_death(clan)
             if len(self.multi_cat_objects) <= 2:
                 return
 
@@ -625,28 +625,36 @@ class ShortEvent:
             else:
                 cat.die(body)
 
-    def handle_mass_death(self):
+    def handle_mass_death(self, clan):
         """
         finds cats eligible for the death, if not enough cats are eligible then event is tossed.
         cats that will die are added to self.dead_cats
         """
+        # Leaders cannot initiate mass-death events.
+        if self.main_cat.status.rank == CatRank.LEADER:
+            return
         # gather living clan cats except leader bc leader lives would be frustrating to handle in these
-        alive_cats = [i for i in Cat.all_cats.values() if i.status.alive_in_player_clan]
+        alive_cats = [
+            kitty for kitty in Cat.all_cats.values()
+            if kitty.status.group_ID == clan.group_ID
+            and not kitty.dead
+            and kitty.status.rank != CatRank.LEADER
+        ]
 
-        # make sure all cats in the pool fit the event requirements
+        # Make sure all cats in the pool fit the event requirements.
         requirements = self.m_c
-        for kitty in alive_cats:
+
+        alive_cats = [
+            kitty for kitty in alive_cats
             if (
-                kitty.status.rank not in requirements["status"]
-                and "any" not in requirements["status"]
-            ):
-                alive_cats.remove(kitty)
-                continue
-            if (
-                kitty.age not in requirements["age"]
-                and "any" not in requirements["age"]
-            ):
-                alive_cats.remove(kitty)
+                "any" in requirements["status"]
+                or kitty.status.rank in requirements["status"]
+            )
+            and (
+                "any" in requirements["age"]
+                or kitty.age in requirements["age"]
+            )
+        ]
         alive_count = len(alive_cats)
 
         # if there's enough eligible cats, then we KILL
@@ -656,7 +664,7 @@ class ShortEvent:
                 max_deaths = 10  # we don't want to have massive events with a wall of names to read
             weights = []
             population = []
-            for n in range(2, max_deaths):
+            for n in range(3, max_deaths):
                 population.append(n)
                 weight = 1 / (0.75 * n)  # Lower chance for more dead cats
                 weights.append(weight)
@@ -664,11 +672,18 @@ class ShortEvent:
             if dead_count < 2:
                 dead_count = 2
 
-            self.dead_cat_objects = sample(alive_cats, dead_count)
-            if self.main_cat not in self.dead_cat_objects:
-                self.dead_cat_objects.append(
-                    self.main_cat
-                )  # got to include the cat that rolled for death in the first place
+            # Include the initiating cat in the total death count.
+            other_eligible_cats = [
+                kitty for kitty in alive_cats
+                if kitty.ID != self.main_cat.ID
+            ]
+
+            self.dead_cat_objects = sample(
+                other_eligible_cats,
+                dead_count - 1
+            )
+
+            self.dead_cat_objects.append(self.main_cat)
 
             taken_cats = []
             for kitty in self.dead_cat_objects:

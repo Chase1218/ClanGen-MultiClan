@@ -627,8 +627,13 @@ class Cat:
 
         # If they have any apprentices, make sure they are still valid:
         if old_rank == CatRank.MEDICINE_CAT and game.clan:
-            game.clan.remove_med_cat(self)
-
+            if self.status.group_ID == game.clan.group_ID:
+                game.clan.remove_med_cat(self)
+            else:
+                for other_clan in game.clan.all_other_clans:
+                    if self.status.group_ID == other_clan.group_ID:
+                        other_clan.remove_med_cat(self)
+                        break
         # updates mentors
         if self.status.rank in [
             CatRank.APPRENTICE,
@@ -652,7 +657,13 @@ class Cat:
 
         elif self.status.rank == CatRank.MEDICINE_CAT:
             if game.clan is not None:
-                game.clan.new_medicine_cat(self)
+                if self.status.group_ID == game.clan.group_ID:
+                    game.clan.new_medicine_cat(self)
+                else:
+                    for other_clan in game.clan.all_other_clans:
+                        if self.status.group_ID == other_clan.group_ID:
+                            other_clan.new_medicine_cat(self)
+                            break
 
         # update thought
         if new_thought and new_rank not in (
@@ -1427,6 +1438,13 @@ class Cat:
         """
         bio_parents = [parent for parent in (self.parent1, self.parent2) if parent]
         return bio_parents + self.adoptive_parents
+
+    def reveal_biological_parent(self, parent):
+        """Reveal one of this cat's existing biological parents."""
+        if self.parent1 == parent.ID:
+            self.parent1_known = True
+        elif self.parent2 == parent.ID:
+            self.parent2_known = True
 
     def get_siblings(self):
         """Returns list of the siblings(id)."""

@@ -167,6 +167,9 @@ def one_moon():
             one_moon_outside_cat(cat, other_clan_cats)
 
     if game.clan.clancount == "multiclan":
+        for clan in [game.clan] + game.clan.all_other_clans:
+            outsider_events.handle_outsider_family_arrival(clan)
+        
         handle_crossclan_relationships()
 
     # keeping this commented out till disasters are more polished
@@ -262,6 +265,9 @@ def one_moon():
                 )
             else:
                 event = i18n.t("hardcoded.event_deaths", count=1)
+
+            # Use the deceased cats Clan in the funeral announcement
+            event = event.replace("c_n", clan.name)
 
             if len(ghost_names[clan.prefix]) > 2:
                 alive_cats = [
@@ -1071,6 +1077,13 @@ def one_moon_cat(cat, clan=None):
     # all actions, which do not trigger an event display and
     # are connected to cats are located in there
     cat.one_moon()
+
+    # Update mentors for playable OtherClan apprentices.
+    if (
+        clan is not game.clan
+        and cat.status.rank.is_any_apprentice_rank()
+    ):
+        cat.update_mentor()
 
     if constants.CONFIG["event_generation"]["debug_type_override"]:
         debug_type_override = constants.CONFIG["event_generation"][
@@ -1899,18 +1912,26 @@ def handle_outbreaks(cat):
     # check how many kitties are already ill
     already_sick = list(
         filter(
-            lambda kitty: (kitty.status.alive_in_player_clan and kitty.is_ill()),
+            lambda kitty: (
+                kitty.status.group_ID == cat.status.group_ID
+                and not kitty.dead
+                and kitty.is_ill()
+        ),
             Cat.all_cats.values(),
-        )
+        ),
     )
     already_sick_count = len(already_sick)
 
     # round up the living kitties
     healthy_cats = list(
         filter(
-            lambda kitty: kitty.status.alive_in_player_clan and not kitty.is_ill(),
-            Cat.all_cats.values(),
-        )
+            lambda kitty : ( 
+            kitty.status.group_ID == cat.status.group_ID
+            and not kitty.dead 
+            and not kitty.is_ill()
+        ),
+            Cat.all_cats.values()
+            ),     
     )
     healthy_count = len(healthy_cats)
 
@@ -1920,12 +1941,17 @@ def handle_outbreaks(cat):
     ):
         return
 
-    meds = find_alive_cats_with_rank(
-        Cat,
-        [CatRank.MEDICINE_CAT, CatRank.MEDICINE_APPRENTICE],
-        working=True,
-        sort=True,
-    )
+    meds = [
+        kitty
+        for kitty in Cat.all_cats.values()
+        if kitty.status.group_ID == cat.status.group_ID
+        and not kitty.dead
+        and kitty.status.rank in [
+            CatRank.MEDICINE_CAT,
+            CatRank.MEDICINE_APPRENTICE,
+        ]
+        and not kitty.not_working()
+    ]
 
     for illness in cat.illnesses:
         # check if illness can infect other cats
@@ -1942,7 +1968,10 @@ def handle_outbreaks(cat):
             ):
                 continue
 
-            if get_clan_setting("rest_and_recover"):
+            if (
+                cat.status.group_ID == game.clan.group_ID
+                and get_clan_setting("rest_and_recover")
+            ):
                 stopping_chance = constants.CONFIG["focus"]["rest_and_recover"][
                     "outbreak_prevention"
                 ]
@@ -1955,7 +1984,8 @@ def handle_outbreaks(cat):
                     filter(
                         lambda kitty: (
                             kitty.status.rank.is_baby()
-                            and kitty.status.alive_in_player_clan
+                            and kitty.status.group_ID == cat.status.group_ID
+                            and not kitty.dead
                             and not kitty.is_ill()
                         ),
                         Cat.all_cats.values(),

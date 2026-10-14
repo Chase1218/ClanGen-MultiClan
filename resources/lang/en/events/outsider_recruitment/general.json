@@ -1,0 +1,9 @@
+[
+    {
+        "event_id": "outsider_recruitment_family_01",
+        "location": ["any"],
+        "season": ["any"],
+        "frequency": 4,
+        "event_text": "m_c approaches c_n's border, asking to join the Clan where r_c lives. They hope their kits can grow up knowing both of their parents."
+    }
+]
