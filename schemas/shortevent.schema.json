@@ -237,7 +237,10 @@
         "accessory",
         "ceremony",
         "transition",
-        "mediator"
+        "mediator",
+        "approach",
+        "success",
+        "fail"
       ],
       "title": "EventSubtype",
       "type": "string"

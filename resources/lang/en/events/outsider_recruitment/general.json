@@ -1,9 +1,26 @@
 [
     {
         "event_id": "outsider_recruitment_family_01",
+        "sub_type": ["approach"],
         "location": ["any"],
         "season": ["any"],
         "frequency": 4,
         "event_text": "m_c approaches c_n's border, asking to join the Clan where r_c lives. They hope their kits can grow up knowing both of their parents."
+    },
+    {
+        "event_id": "outsider_recruitment_family_01_success_01",
+        "sub_type": ["success"],
+        "location": ["any"],
+        "season":["any"],
+        "frequency": 4,
+        "event_text": "After considering m_c's request, lead_name agrees and welcomes them to c_n, hoping r_c's kits will be as loyal as {PRONOUN/r_c/object}."
+    },
+    {
+        "event_id": "outsider_recruitment_family_01_failure_01",
+        "sub_type": ["fail"],
+        "location": ["any"],
+        "season": ["any"],
+        "frequency": 4,
+        "event_text": "Despite m_c's conviction to join, lead_name is not convinced that c_n needs more mouths to feed. m_c is turned away, shocked and reeling, and there is nothing that r_c can do to change lead_name's mind."
     }
 ]

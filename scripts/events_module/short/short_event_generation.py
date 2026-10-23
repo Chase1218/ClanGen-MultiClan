@@ -158,6 +158,66 @@ def create_short_event(
                 already_reset = True
 
     if chosen_event:
+
+        if chosen_event.event_id == "gen_new_cat_otherclanexile1_unknown":
+            eligible_warriors = [
+                c for c in Cat.all_cats.values()
+                if not c.dead
+                and c.status.group_ID == other_clan.group_ID
+                and c.status.rank == CatRank.WARRIOR
+            ]
+
+            chosen_event.exiled_cat = random.choice(eligible_warriors)
+
+        if chosen_event.event_id == "gen_new_cat_otherclanexile2_unknown":
+            chosen_event.exiled_cat = other_clan.leader
+
+        if chosen_event.event_id == "gen_new_cat_otherclanexile3_unknown":
+            eligible_medicine_cats = [
+                c for c in Cat.all_cats.values()
+                if not c.dead
+                and c.status.group_ID == other_clan.group_ID
+                and c.status.rank == CatRank.MEDICINE_CAT
+            ]
+
+            chosen_event.exiled_cat = random.choice(eligible_medicine_cats)
+
+        if chosen_event.event_id == "gen_new_cat_otherclanexile4_unknown":
+            eligible_deputies = [
+                c for c in Cat.all_cats.values()
+                if not c.dead
+                and c.status.group_ID == other_clan.group_ID
+                and c.status.rank == CatRank.DEPUTY
+            ]
+
+            chosen_event.exiled_cat = random.choice(eligible_deputies)
+
+        if chosen_event.event_id in (
+            "gen_misc_any_nothostile_otherclanapp1",
+            "gen_new_cat_any_nothostile_otherclanapp2",
+        ):
+            eligible_apprentices = [
+                c for c in Cat.all_cats.values()
+                if not c.dead
+                and c.status.group_ID == other_clan.group_ID
+                and c.status.rank == CatRank.APPRENTICE
+            ]
+
+            chosen_event.visiting_apprentice = random.choice(eligible_apprentices)
+
+        if chosen_event.event_id in (
+            "gen_new_cat_anyotherclancat1",
+            "gen_new_cat_anyotherclancat2",
+        ):
+            eligible_warriors = [
+                c for c in Cat.all_cats.values()
+                if not c.dead
+                and c.status.group_ID == other_clan.group_ID
+                and c.status.rank == CatRank.WARRIOR
+            ]
+
+            chosen_event.defecting_cat = random.choice(eligible_warriors)
+        
         used_events.add(chosen_event.event_id)
         # set future event trigger status
         if future_event:
@@ -365,6 +425,105 @@ def filter_events(
     incorrect_format = []
 
     for event in possible_events:
+        if event.event_id == "gen_new_cat_otherclanexile1_unknown":
+            if not other_clan:
+                continue
+
+            eligible_warriors = [
+                c for c in Cat.all_cats.values()
+                if not c.dead
+                and c.status.group_ID == other_clan.group_ID
+                and c.status.rank == CatRank.WARRIOR
+            ]
+
+            if not eligible_warriors:
+                continue
+
+        if event.event_id == "gen_new_cat_otherclanexile2_unknown":
+            if not other_clan:
+                continue
+
+            if (
+                not other_clan.leader
+                or other_clan.leader.dead
+                or other_clan.leader.status.group_ID != other_clan.group_ID
+                or other_clan.leader.status.rank != CatRank.LEADER
+            ):
+                continue
+
+        if event.event_id == "gen_new_cat_otherclanexile3_unknown":
+            if not other_clan:
+                continue
+
+            eligible_medicine_cats = [
+                c for c in Cat.all_cats.values()
+                if not c.dead
+                and c.status.group_ID == other_clan.group_ID
+                and c.status.rank == CatRank.MEDICINE_CAT
+            ]
+
+            if not eligible_medicine_cats:
+                continue
+
+        if event.event_id == "gen_new_cat_otherclanexile4_unknown":
+            if not other_clan:
+                continue
+
+            eligible_deputies = [
+                c for c in Cat.all_cats.values()
+                if not c.dead
+                and c.status.group_ID == other_clan.group_ID
+                and c.status.rank == CatRank.DEPUTY
+            ]
+
+            if not eligible_deputies:
+                continue
+
+        if event.event_id == "gen_new_cat_anyotherclancat1":
+            if not other_clan:
+                continue
+
+            eligible_warriors = [
+                c for c in Cat.all_cats.values()
+                if not c.dead
+                and c.status.group_ID == other_clan.group_ID
+                and c.status.rank == CatRank.WARRIOR
+            ]
+
+            if not eligible_warriors:
+                continue
+
+        if event.event_id == "gen_new_cat_anyotherclancat2":
+            if not other_clan:
+                continue
+
+            eligible_warriors = [
+                c for c in Cat.all_cats.values()
+                if not c.dead
+                and c.status.group_ID == other_clan.group_ID
+                and c.status.rank == CatRank.WARRIOR
+            ]
+
+            if not eligible_warriors:
+                continue
+
+        if event.event_id in (
+            "gen_misc_any_nothostile_otherclanapp1",
+            "gen_new_cat_any_nothostile_otherclanapp2",
+        ):
+            if not other_clan:
+                continue
+
+            eligible_apprentices = [
+                c for c in Cat.all_cats.values()
+                if not c.dead
+                and c.status.group_ID == other_clan.group_ID
+                and c.status.rank == CatRank.APPRENTICE
+            ]
+
+            if not eligible_apprentices:
+                continue
+
         # check if event is in allowed or excluded
         if allowed_events and event.event_id not in allowed_events:
             continue

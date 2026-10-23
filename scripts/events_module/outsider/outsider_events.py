@@ -14,6 +14,13 @@ from scripts.game_structure.localization import load_lang_resource
 from scripts.events_module.short.short_event_generation import generate_event_objects
 from scripts.events_module.text_adjust import event_text_adjust
 from scripts.cat.cats import Cat
+from scripts.cat.microservices.add_to_clan import (
+    add_to_clan,
+    add_dependents_to_clan,
+)
+from scripts.events_module.outsider.recruitment_modifiers import (
+    get_outsider_acceptance_chance,
+)
 
 # ---------------------------------------------------------------------------- #
 #                               New Cat Event Class                              #
@@ -132,100 +139,19 @@ def roll_outsider_family_arrival(clan):
 
     return random.choice(candidates)
 
-def get_outsider_recruitment_event():
+def get_outsider_recruitment_event(sub_type="approach"):
     """Select an event from the outsider recruitment JSON."""
     events = generate_event_objects(
         "outsider_recruitment",
         "general",
         4,
     )
+    events = [event for event in events if sub_type in event.sub_type]
 
     if not events:
         return None
 
     return random.choice(events)
-
-def get_outsider_acceptance_chance(clan):
-    """Calculate a Clan's chance of accepting a newcomer."""
-
-    chance = 50
-
-    # Adult personality traits
-    personality_modifiers = {
-        "troublesome": -5,
-        "lonesome": -10,
-        "fierce": -10,
-        "bloodthirsty": -15,
-        "cold": -15,
-        "childish": 0,
-        "playful": 5,
-        "charismatic": 10,
-        "bold": 5,
-        "daring": 5,
-        "nervous": -10,
-        "righteous": 0,
-        "insecure": -10,
-        "strict": -10,
-        "compassionate": 15,
-        "thoughtful": 10,
-        "ambitious": -5,
-        "confident": 5,
-        "adventurous": 10,
-        "calm": 5,
-        "careful": -5,
-        "faithful": 5,
-        "loving": 15,
-        "loyal": 5,
-        "responsible": 5,
-        "shameless": -5,
-        "strange": 0,
-        "vengeful": -15,
-        "wise": 10,
-        "arrogant": -10,
-        "competitive": -5,
-        "grumpy": -5,
-        "cunning": -10,
-        "oblivious": 0,
-        "gloomy": -5,
-        "sincere": 10,
-        "flamboyant": 5,
-        "rebellious": 5,
-    }
-
-    # clan temperaments
-    temperament_modifiers = {
-        "cunning": -10,
-        "proud": -10,
-        "bloodthirsty": -10,
-        "amiable": 10,
-        "stoic": 0,
-        "wary": -10,
-        "gracious": 10,
-        "mellow": 10,
-        "logical": 0,
-        "chaotic": 0,
-        "mercurial": -5,
-        "calculating": -5,
-        "eager": 10,
-        "observant": 0,
-        "adaptable": 10,
-        "decisive": 0,
-        "methodical": 0,
-        "steadfast": 0,
-    }
-
-    # Apply the leader's personality modifier.
-    if clan.leader:
-        trait = clan.leader.personality.trait
-        chance += personality_modifiers.get(trait, 0)
-
-    # Apply both Clan temperament modifiers.
-    for temperament in clan.temperament:
-        chance += temperament_modifiers.get(temperament, 0)
-
-    # Both acceptance and rejection remain possible.
-    return max(5, min(95, chance))
-
 
 def handle_outsider_family_arrival(clan):
     """Generate an outsider family reunion event for this Clan."""
@@ -250,15 +176,37 @@ def handle_outsider_family_arrival(clan):
         and clan_parent.ID in (child.parent1, child.parent2)
     ]
 
+    # Determine whether the Clan accepts the outsider.
+    acceptance_chance = get_outsider_acceptance_chance(clan)
+    accepted = random.randrange(100) < acceptance_chance
+    
+    outcome_event = get_outsider_recruitment_event(
+        "success" if accepted else "fail"
+    )
+    if not outcome_event:
+        return
+    
     # Reveal the Clan parent's identity to all eligible kits.
     for kit_id in family_kit_ids:
         child = Cat.all_cats.get(kit_id)
         if child:
             child.reveal_biological_parent(clan_parent)
 
+    if accepted:
+        add_to_clan(outsider, clan.group_ID)
+        joining_kits = add_dependents_to_clan(outsider)
+
+        for kit_id in joining_kits:
+            joining_kit = Cat.all_cats.get(kit_id)
+            if joining_kit and joining_kit.status.rank.is_any_apprentice_rank():
+                joining_kit.update_mentor()
+
+    event_list = [event.text, outcome_event.text]
+    combined_text = " ".join(event_list)
+
     event_text = event_text_adjust(
         Cat,
-        event.text,
+        combined_text,
         main_cat=outsider,
         random_cat=clan_parent,
         clan=clan,

@@ -252,8 +252,107 @@ class ShortEvent:
             if len(self.multi_cat_objects) <= 2:
                 return
 
-        # create new cats (must happen here so that new cats can be included in further changes)
-        self.handle_new_cats(other_clan, clan)
+        # Use an existing warrior for the other-Clan exile event
+        if self.event_id in (
+            "gen_new_cat_otherclanexile1_unknown",
+            "gen_new_cat_otherclanexile2_unknown",
+            "gen_new_cat_otherclanexile3_unknown",
+            "gen_new_cat_otherclanexile4_unknown",
+        ):
+            self.new_cats.append([self.exiled_cat])
+            self.all_involved_cat_ids.append(self.exiled_cat.ID)
+            if self.event_id == "gen_new_cat_otherclanexile2_unknown":
+                other_clan.leader_lives = 0
+            self.exiled_cat.exile()
+            if self.event_id == "gen_new_cat_otherclanexile2_unknown":
+                if other_clan.leader and other_clan.leader.ID == self.exiled_cat.ID:
+                    other_clan.leader = None
+            if self.event_id == "gen_new_cat_otherclanexile3_unknown":
+                other_clan.medicine_cat = next(
+                    (
+                        cat for cat in Cat.all_cats.values()
+                        if not cat.dead
+                        and cat.status.group_ID == other_clan.group_ID
+                        and cat.status.rank == CatRank.MEDICINE_CAT
+                    ),
+                    None,
+                )
+            if self.event_id == "gen_new_cat_otherclanexile4_unknown":
+                if other_clan.deputy and other_clan.deputy.ID == self.exiled_cat.ID:
+                    other_clan.deputy = None
+
+        #Use an existing apprentice for the visiting apprentice event
+        elif self.event_id in (
+            "gen_misc_any_nothostile_otherclanapp1",
+            "gen_new_cat_any_nothostile_otherclanapp2",
+        ):
+            self.new_cats.append([self.visiting_apprentice])
+            self.all_involved_cat_ids.append(self.visiting_apprentice.ID)
+
+            if self.event_id == "gen_new_cat_any_nothostile_otherclanapp2":
+                from scripts.events_module.outsider.recruitment_modifiers import (
+                    get_outsider_acceptance_chance,
+                    get_defection_relation_penalty,
+                )
+
+                acceptance_chance = get_outsider_acceptance_chance(clan)
+                self.defection_accepted = randrange(100) < acceptance_chance
+
+                from scripts.events_module.short.short_event_generation import (
+                    generate_event_objects,
+                )
+
+                outcome_id = (
+                    f"{self.event_id}_success"
+                    if self.defection_accepted
+                    else f"{self.event_id}_fail"
+                )
+
+                outcome_event = next(
+                    (
+                        event for event in generate_event_objects(
+                            "new_cat", "general", 1
+                        )
+                        if event.event_id == outcome_id
+                    ),
+                    None,
+                )
+
+                if not outcome_event:
+                    return
+
+                event_list = [self.text, outcome_event.text]
+                self.text = " ".join(event_list)
+
+                if self.defection_accepted:
+                    self.visiting_apprentice.status.add_to_group(
+                        new_group_ID=clan.group_ID,
+                        age=self.visiting_apprentice.age,
+                        become_rank=CatRank.APPRENTICE,
+                    )
+                    self.visiting_apprentice.update_mentor()
+                    relation_penalty = get_defection_relation_penalty(other_clan)
+                    change_clan_relations(clan, other_clan, relation_penalty)
+
+        elif self.event_id in (
+            "gen_new_cat_anyotherclancat1",
+            "gen_new_cat_anyotherclancat2",
+        ):
+            self.new_cats.append([self.defecting_cat])
+            self.all_involved_cat_ids.append(self.defecting_cat.ID)
+            self.defecting_cat.status.add_to_group(
+                new_group_ID=clan.group_ID,
+                age=self.defecting_cat.age,
+                become_rank=CatRank.WARRIOR,
+            )
+            from scripts.events_module.outsider.recruitment_modifiers import (
+                get_defection_relation_penalty,
+            )
+            self.other_clan["changed"] = get_defection_relation_penalty(other_clan)
+
+        else:
+            # Generate new cats for normal recruitment events
+            self.handle_new_cats(other_clan, clan)
 
         # remove cats from involved_cats if they're supposed to be
         if self.r_c and "r_c" in self.exclude_involved:

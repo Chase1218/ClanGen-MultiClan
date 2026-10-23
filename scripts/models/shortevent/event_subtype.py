@@ -15,3 +15,6 @@ class EventSubtype(Enum):
     ceremony = "ceremony"
     transition = "transition"
     mediator = "mediator"
+    approach = "approach"
+    success = "success"
+    fail = "fail"

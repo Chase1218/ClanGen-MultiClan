@@ -1038,14 +1038,6 @@
             "age": ["adolescent", "young adult", "adult", "senior adult", "senior"],
             "status": ["any"]
         },
-        "new_cat": [
-            [
-                "old_name",
-                "clancat",
-                "status:warrior",
-                "backstory:refugee1,guided4,retired_leader,ostracized_warrior,disgraced1,disgraced2,disgraced3,otherclan1,otherclan2,otherclan3,otherclan4"
-            ]
-        ],
         "other_clan": {
             "current_rep": ["hostile"],
             "changed": -1
@@ -1068,18 +1060,10 @@
         "location": ["any"],
         "season": ["any"],
         "frequency": 2,
-        "event_text": "m_c meets an injured warrior from o_c_n who asks to join the Clan in exchange for healing.",
+        "event_text": "m_c meets an injured warrior, n_c:0, from o_c_n who asks to join the Clan in exchange for healing.",
         "m_c": {
             "status": ["medicine cat", "leader", "warrior", "deputy", "apprentice", "medicine cat apprentice", "mediator", "mediator apprentice"]
         },
-        "new_cat": [
-            [
-                "old_name",
-                "clancat",
-                "status:warrior",
-                "backstory:refugee1,guided4,retired_leader,ostracized_warrior,disgraced1,disgraced2,disgraced3,otherclan1,otherclan2,otherclan3,otherclan4"
-            ]
-        ],
         "injury": [
             {
                 "cats": ["n_c:0"],
@@ -2199,7 +2183,7 @@
             "m_c"
         ],
         "frequency": 2,
-        "event_text": "At the Gathering, o_c_n's leader announces they have exiled a warrior for an unforgivable crime. They advise the other Clans to keep their guards up.",
+        "event_text": "At the Gathering, o_c_n's leader announces they have exiled n_c:0 for an unforgivable crime. They advise the other Clans to keep their guards up.",
         "m_c": {
             "age": [
                 "adolescent",
@@ -2209,16 +2193,6 @@
                 "senior"
             ]
         },
-        "new_cat": [
-            [
-                "former clancat",
-                "status:warrior",
-                "meeting",
-                "unknown",
-                "backstory:disgraced1, disgraced2",
-                "new_name"
-            ]
-        ],
         "relationships": [
             {
                 "cats_from": ["some_clan", "high_social"],
@@ -2255,7 +2229,7 @@
             "m_c"
         ],
         "frequency": 1,
-        "event_text": "At the Gathering, o_c_n's deputy takes their place among the other leaders and declares the previous leader was driven out, but may still stalk the borders.",
+        "event_text": "At the Gathering, o_c_n's deputy takes their place among the other leaders and declares that n_c:0 was driven out, but may still stalk the borders.",
         "m_c": {
             "age": [
                 "adolescent",
@@ -2265,16 +2239,6 @@
                 "senior"
             ]
         },
-        "new_cat": [
-            [
-                "former clancat",
-                "status:warrior",
-                "meeting",
-                "unknown",
-                "backstory:disgraced3",
-                "new_name"
-            ]
-        ],
         "relationships": [
             {
                 "cats_from": ["some_clan", "high_social"],
@@ -2311,7 +2275,7 @@
             "m_c"
         ],
         "frequency": 1,
-        "event_text": "At the Gathering, o_c_n's leader announces their medicine cat has been exiled for a terrible transgression. They warn the other Clans that the exiled cat is not to be trusted and should be killed on sight.",
+        "event_text": "At the Gathering, o_c_n's leader announces their medicine cat, n_c:0, has been exiled for a terrible transgression. They warn the other Clans that the exiled cat is not to be trusted and should be killed on sight.",
         "m_c": {
             "age": [
                 "adolescent",
@@ -2321,16 +2285,6 @@
                 "senior"
             ]
         },
-        "new_cat": [
-            [
-                "former clancat",
-                "status:medicine cat",
-                "meeting",
-                "unknown",
-                "backstory:disgraced2, disgraced3",
-                "new_name"
-            ]
-        ],
         "relationships": [
             {
                 "cats_from": ["some_clan", "high_social"],
@@ -2367,7 +2321,7 @@
             "m_c"
         ],
         "frequency": 1,
-        "event_text": "At the Gathering, o_c_n's leader announces their deputy did something terrible and was exiled. They look mournful as they deliver the news and advise the others to watch their borders closely.",
+        "event_text": "At the Gathering, o_c_n's leader announces their deputy, n_c:0, did something terrible and was exiled. They look mournful as they deliver the news and advise the others to watch their borders closely.",
         "m_c": {
             "age": [
                 "adolescent",
@@ -2377,16 +2331,6 @@
                 "senior"
             ]
         },
-        "new_cat": [
-            [
-                "former clancat",
-                "status:warrior",
-                "meeting",
-                "unknown",
-                "backstory:disgraced3",
-                "new_name"
-            ]
-        ],
         "relationships": [
             {
                 "cats_from": ["some_clan", "high_social"],
@@ -4107,5 +4051,41 @@
         "outsider": {
             "changed": -2
         }
+    },
+      {
+        "event_id": "gen_new_cat_any_nothostile_otherclanapp2",
+        "location": ["any"],
+        "season": ["any"],
+        "frequency": 1,
+        "event_text": "An apprentice from o_c_n, n_c:0, arrives at c_n's border, declaring that {PRONOUN/n_c:0/subject} no longer wishes to live with {PRONOUN/n_c:0/poss} birth Clan and pleading to be accepted into c_n.",
+        "m_c": {
+            "age": [
+                "adolescent",
+                "young adult",
+                "adult",
+                "senior adult",
+                "senior"
+            ]
+        },
+        "exclude_involved": ["m_c"],
+        "other_clan": {
+            "current_rep": ["ally", "neutral"]
+        }
+    },
+    {
+        "event_id": "gen_new_cat_any_nothostile_otherclanapp2_success",
+        "sub_type": ["success"],
+        "location": ["any"],
+        "season": ["any"],
+        "frequency": 1,
+        "event_text": "After hearing n_c:0's plea, lead_name agrees to welcome the young apprentice into c_n. Though their decision may strain relations with o_c_n, n_c:0 is relieved to have found a new home."
+    },
+    {
+        "event_id": "gen_new_cat_any_nothostile_otherclanapp2_fail",
+        "sub_type": ["fail"],
+        "location": ["any"],
+        "season": ["any"],
+        "frequency": 1,
+        "event_text": "After hearing n_c:0's plea, lead_name slowly shakes {PRONOUN/lead_name/poss} head. It's not n_c:0's conviction that lead_name doubts, but {PRONOUN/lead_name/subject} can't afford to jeopardize c_n's relationship with o_c_n."
     }
 ]

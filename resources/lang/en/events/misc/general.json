@@ -5695,7 +5695,7 @@
             "any"
         ],
         "frequency": 1,
-        "event_text": "A o_c_n apprentice asked to join c_n after having apparently forsaken {PRONOUN/n_c:0/poss} original Clan loyalties. {PRONOUN/n_c:0/subject/CAP} stayed for only a few days before sheepishly requesting to return home.",
+        "event_text": "n_c:0 asked to join c_n after having apparently forsaken {PRONOUN/n_c:0/poss} original Clan loyalties. {PRONOUN/n_c:0/subject/CAP} stayed for only a few days before sheepishly requesting to return home.",
         "m_c": {
             "age": [
                 "adolescent",
@@ -5705,13 +5705,6 @@
                 "senior"
             ]
         },
-        "new_cat": [
-            [
-                "meeting",
-                "clancat",
-                "age:adolescent"
-            ]
-        ],
         "exclude_involved": [
             "m_c"
         ],
