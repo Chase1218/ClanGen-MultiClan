@@ -834,17 +834,19 @@ def gather_cat_objects(
 
         found_cat = None
         if abbr == "m_c":
-            found_cat = extra_cat if extra_cat else event.main_cat
-        elif abbr == "r_c":
+            found_cat = extra_cat if extra_cat else getattr(event, "main_cat", None)
+        elif abbr == "r_c" and event is not None:
             if hasattr(event, "random_cats"):
                 found_cat = event.random_cats[0] if event.random_cats else None
             else:
                 found_cat = event.random_cat
-        elif re.match(r"r_c[0-9]+", abbr):
+        elif re.match(r"r_c[0-9]+", abbr) and event is not None:
+            # patrols don't pass an event, so their random cats come from involved_cats above
             index = re.match(r"r_c([0-9]+)", abbr).group(1)
             index = int(index) - 1
-            if index < len(event.random_cats):
-                found_cat = event.random_cats[index]
+            random_cats = getattr(event, "random_cats", None) or []
+            if 0 <= index < len(random_cats):
+                found_cat = random_cats[index]
 
         # add/remove cat if found and then continue for loop
         if is_exclusionary and found_cat:
@@ -862,8 +864,9 @@ def gather_cat_objects(
         if re.match(r"n_c:[0-9]+", abbr):  # new_cats
             index = re.match(r"n_c:([0-9]+)", abbr).group(1)
             index = int(index)
-            if index < len(event.new_cats):
-                found_cat_list.update(event.new_cats[index])
+            new_cats = getattr(event, "new_cats", None) or []
+            if index < len(new_cats):
+                found_cat_list.update(new_cats[index])
         # OVERALL CLAN CATS
         elif abbr == "clan":
             found_cat_list.update(clan_cats)
