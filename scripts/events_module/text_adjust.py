@@ -441,15 +441,21 @@ def event_text_adjust(
     if "mur_c" in text:
         replace_dict["mur_c"] = (str(victim_cat.name), get_pronouns(victim_cat))
 
-    # lead_name
+    # lead_name (the leader of the Clan the event is about, which may be another Clan)
     if "lead_name" in text:
         leader = Cat.fetch_cat(clan.leader if clan else game.clan.leader)
-        replace_dict["lead_name"] = (str(leader.name), choice(leader.pronouns))
+        if leader:
+            replace_dict["lead_name"] = (str(leader.name), choice(leader.pronouns))
+        else:
+            replace_dict["lead_name"] = ("the leader", choice(get_new_pronouns("default")))
 
-    # dep_name
+    # dep_name (the deputy of the Clan the event is about, which may be another Clan)
     if "dep_name" in text:
-        deputy = Cat.fetch_cat(game.clan.deputy)
-        replace_dict["dep_name"] = (str(deputy.name), choice(deputy.pronouns))
+        deputy = Cat.fetch_cat(clan.deputy if clan else game.clan.deputy)
+        if deputy:
+            replace_dict["dep_name"] = (str(deputy.name), choice(deputy.pronouns))
+        else:
+            replace_dict["dep_name"] = ("the deputy", choice(get_new_pronouns("default")))
 
     # med_name
     if "med_name" in text:
