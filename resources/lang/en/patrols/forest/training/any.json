@@ -2540,11 +2540,11 @@
         ],
         "required_cat_types": {
             "patrol_cats": [
-                2,
+                3,
                 6
             ],
             "apprentice": [
-                2,
+                3,
                 6
             ],
             "normal adult": [
